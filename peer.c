@@ -147,14 +147,13 @@ void send_one_whohas_ihave_packet(struct sockaddr* dst_addr, unsigned char packe
 void send_whohas_ihave_packet(struct sockaddr* dst_addr, unsigned char packet_type, struct has_chunk* chunks){
   unsigned int chunk_count = 0;
   unsigned int packet_count = 0;
-  unsigned int i, j;
+  unsigned int j;
   struct has_chunk* p = chunks;
   while(p!= NULL){
     chunk_count++;
     p = p->next;
   }
   packet_count = chunk_count/CHUNK_PER_PACKET;
-  i=0;
   printf("in send_whohas_ihave_packet, chunk_count: %d, packet_count: %d\n", chunk_count, packet_count);
   if(packet_count==0){
     send_one_whohas_ihave_packet(dst_addr, packet_type, chunks, chunk_count, 0);
@@ -209,7 +208,7 @@ void process_inbound_udp(int sock) {
   unsigned char chunk_count;
   unsigned char i;
   fromlen = sizeof(from);
-  int nbytes = spiffy_recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &from, &fromlen);
+  spiffy_recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &from, &fromlen);
   // int nbytes = recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &from, &fromlen);
   // printf("PROCESS_INBOUND_UDP SKELETON -- replace!\n"
 	 // "Incoming message from %s:%d\n", 
