@@ -1,0 +1,5 @@
+Tests for Checkpoint 1:
+1. Test script from course website "checkpoint1.rb"
+2. Test of sending WHOHAS and IHAVE packets between 2 peers for small file and small number of chunks.
+3. Test of sending WHOHAS and IHAVE packets between 2 peers for large file and large number of chunks that do not fit in one packet.
+4. Test of the correct hashing and transmission of packets and header.

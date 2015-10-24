@@ -129,7 +129,7 @@ end
 
 
 ## CHANGE ME!  
-spiffy_port = 44442
+spiffy_port = 32232
 
 
 ENV['SPIFFY_ROUTER'] = "127.0.0.1:#{spiffy_port}"   
