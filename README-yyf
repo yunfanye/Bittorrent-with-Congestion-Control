@@ -21,6 +21,6 @@
  
 /* TODO: control packet lost, similar to data packet */
 
-/* use time() is inaccurate, should be milliseconds */
+/* TODO: use time() is inaccurate, should be milliseconds */
 
 
