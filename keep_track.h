@@ -44,6 +44,9 @@ char * get_chunk_hash(int peer_id);
 /* initialize a new upload stream, return 0 on error */
 int start_upload(int peer_id);
 
+/* close a upload stream, may because it is finished or closed by peer */
+int abort_upload(int peer_id);
+
 /* return the first timeout seq, 0 if no timeout */
 unsigned get_timeout_seq(int peer_id);
 

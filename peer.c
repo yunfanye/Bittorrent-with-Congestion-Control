@@ -274,10 +274,12 @@ void process_inbound_udp(int sock) {
       break;
     case GET:
     	/* if find chunk != NULL*/
-    	
-    	/* TODO: init a transmission stream and respond data 
+  		if(find_chunk(chunk_hash)) {
+    	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
-    	start_upload(sock, chunk_hash);
+		  	if(start_upload(sock, chunk_hash))    	
+		  		init_cwnd(peer_id);/* init cwnd */
+    	}
     	break;
     case DATA:
     	/* get the corresponding chunk of the peer */

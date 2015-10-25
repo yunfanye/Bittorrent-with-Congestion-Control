@@ -136,6 +136,14 @@ int start_upload(int peer_id) {
 	return 0;
 }
 
+/* close a upload stream, may because it is finished or closed by peer */
+int abort_upload(int peer_id) {
+	int index = get_upload_index_by_id(peer_id);
+	upload_id_map[index] = ID_NULL;
+	/* TODO: release resource */
+	return 1;
+}
+
 /* return the first timeout seq, 0 if no timeout */
 unsigned get_timeout_seq(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
