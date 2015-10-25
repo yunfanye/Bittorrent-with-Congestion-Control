@@ -5,6 +5,7 @@
 #include "sha.h"
 #include <time.h>
 
+#define ABS(x) ((x)>=(0)?(x)(-x))
 /* no valid identity can be 0 */
 #define ID_NULL	0
 /* fixed chunk size of 512 KB */
@@ -19,10 +20,17 @@ static char ** download_chunk_map;
 static int * upload_id_map;
 static int max_conns;
 
+/* network parameters */
+static unsigned RTT = 0;
+static unsigned deviation = 0;
+static unsigned RTO;
+
 /* "private" function prototypes */
+
+/* estimate the RTT and network deviation */
+void infer_RTT(unsigned timestamp); 
 int finish_download(int index);
 int get_download_index_by_id(int id);
-int get_upload_index_by_id(int id);
 int add_record(struct packet_record * root, unsigned seq, unsigned len);
 
 
@@ -133,7 +141,7 @@ unsigned get_timeout_seq(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
 	struct sent_packet * head = sent_queue_head[index];
 	unsigned = seq;
-	if(time() - head -> timestamp > TIMEOUT_THRESHOLD) {
+	if(time() - head -> timestamp > RTO) {
 		sent_queue_head[index] = head -> next;
 		seq = head -> seq;.
 		free(head);
@@ -173,11 +181,14 @@ int receive_ack(int peer_id, unsigned seq) {
 	 * reordering, but node is not the head doesn't affect timeout */
 	/* TODO: may consider double-ended queue to solve reordering problem */
 	while(head != NULL && head -> seq <= seq) {
+		if(head -> seq == seq)
+			infer_RTT(head -> timestamp);
 		tmp = head;
 		head = head -> next;
 		free(tmp);
 		count++;
 	}
+	/* TODO: three dup acks should invoke fast retransmission */
 	sent_queue_head[index] = head;
 	return count;
 }
@@ -186,6 +197,15 @@ int receive_ack(int peer_id, unsigned seq) {
 /*******************************************************
  * helper functions
  *******************************************************/
+
+/* estimate the RTT and network deviation */
+void infer_RTT(unsigned timestamp) {
+	unsigned new_RTT = timestamp - time();
+	unsigned new_dev;
+	RTT = ALPHA * RTT + (1 - ALPHA) * new_RTT;
+	new_dev = ABS(new_RTT - RTT);
+	RTO = RTT + 2 * new_dev;/* inaccurate, TODO */
+}
 
 int finish_download(int index) {
 	int peer_id = download_id_map[index];

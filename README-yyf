@@ -1,5 +1,4 @@
-/* bt_parse.c - find peer id using socket */
-int *bt_peer_id(int socket)
+/* add int *bt_peer_id(int socket) - find peer id using socket */
 
 /* after sending a data packet, call int wait_ack(int peer_id, unsigned seq) */
 
@@ -7,3 +6,9 @@ int *bt_peer_id(int socket)
  * determine retransmission */ 
  
 /* TODO: control packet lost, similar to data packet */
+
+/* use time() is inaccurate, should be milliseconds */
+
+/* call int window_timeout(int peer_id) when a packet timeouts */
+
+/* call get_cwnd_size(int peer_id) to get window size */

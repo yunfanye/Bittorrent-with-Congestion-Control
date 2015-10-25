@@ -233,6 +233,7 @@ void process_inbound_udp(int sock) {
   unsigned peer_id = bt_peer_id(sock);
   char chunk_hash[SHA1_HASH_SIZE];
   int hash_correct;
+  int ack_count;
   
   /* check the format of the packet, i.e. magic number 15441 and version 1 */
   if(magic_number != 15441 || version_number != 1)
@@ -300,7 +301,8 @@ void process_inbound_udp(int sock) {
     	break;
     case ACK:
     	/* move pointer */
-    	receive_ack(peer_id, ack_number);
+    	ack_count = receive_ack(peer_id, ack_number);
+    	window_control(peer_id, ack_count);
     	break;
     case DENIED:
     	abort_download(peer_id);
@@ -397,6 +399,10 @@ void peer_run(bt_config_t *config) {
     perror("peer_run could not bind socket");
     exit(-1);
   }
+  
+  /* init tracker and controller */
+  init_tracker(config->max_conn);
+  init_controller(config->max_conn);
   
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   parse_has_get_chunk_file(config->has_chunk_file, &has_chunks);

@@ -53,4 +53,7 @@ int wait_ack(int peer_id, unsigned seq);
 /* receive a ACK packet, clean wait ack queue */
 int receive_ack(int peer_id, unsigned seq);
 
+/* map id to index, used when controlling cwnd */
+int get_upload_index_by_id(int id);
+
 #endif
