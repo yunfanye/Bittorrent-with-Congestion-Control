@@ -30,7 +30,7 @@ make-chunks: $(MK_CHUNK_OBJS)
 	$(CC) $(CFLAGS) $(MK_CHUNK_OBJS) -o $@ $(LDFLAGS)
 
 clean:
-	rm -f *.o $(BINS) $(TESTBINS)
+	rm -f *.o *~ $(BINS) $(TESTBINS)
 
 bt_parse.c: bt_parse.h
 

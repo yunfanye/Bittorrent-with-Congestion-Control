@@ -1,0 +1,9 @@
+/* bt_parse.c - find peer id using socket */
+int *bt_peer_id(int socket)
+
+/* after sending a data packet, call int wait_ack(int peer_id, unsigned seq) */
+
+/* for each stream call unsigned get_timeout_seq(int peer_id) to 
+ * determine retransmission */ 
+ 
+/* TODO: control packet lost, similar to data packet */
