@@ -13,6 +13,9 @@
 
 
 
+/* look at some TODOs in process_inbound_udp in peer.c, some send functions 
+ * need implementation, like send_ACK. While ignore TODOs in keep_track and 
+ * congestion_control; they just serves as a reminder */
 
 /* add int *bt_peer_id(int socket) - find peer id using socket */
  
