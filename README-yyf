@@ -1,0 +1,26 @@
+/* begin interface */
+
+/* call get_cwnd_size(int peer_id) to get window size */
+
+/* call wait_ack(int peer_id, unsigned seq) after sending a data packet */
+
+/* for each stream call unsigned get_timeout_seq(int peer_id) to 
+ * determine whether timeout */ 
+
+/* call window_timeout(int peer_id) if a packet timeouts */ 
+
+/* end interface */
+
+
+
+/* look at some TODOs in process_inbound_udp in peer.c, some send functions 
+ * need implementation, like send_ACK. While ignore TODOs in keep_track and 
+ * congestion_control; they just serves as a reminder */
+
+/* add int *bt_peer_id(int socket) - find peer id using socket */
+ 
+/* TODO: control packet lost, similar to data packet */
+
+/* TODO: use time() is inaccurate, should be milliseconds */
+
+

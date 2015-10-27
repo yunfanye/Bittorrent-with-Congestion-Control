@@ -37,6 +37,8 @@
 #define DENIED 5
 #define CHUNK_PER_PACKET 74
 
+/* TODO: chunk should have a corresponding filename 
+ * change to hashtable? see common.h */
 struct has_chunk{
   int id;
   char hash[SHA1_HASH_SIZE];
@@ -207,14 +209,39 @@ void process_inbound_udp(int sock) {
   char buf[BUFLEN];
   unsigned char chunk_count;
   unsigned char i;
+  int recv_bytes;
+  
   fromlen = sizeof(from);
-  spiffy_recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &from, &fromlen);
-  // recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &from, &fromlen);
-  // printf("PROCESS_INBOUND_UDP SKELETON -- replace!\n"
-	 // "Incoming message from %s:%d\n", 
-	 // inet_ntoa(from.sin_addr),
-	 // ntohs(from.sin_port));
+  recv_bytes = spiffy_recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &from, &fromlen);
+  
+  if(recv_bytes <= 0) {
+  	/* conn closed or error occurred, close the socket */
+  }
+  
+  unsigned short magic_number = *(unsigned short*)buf;
+  unsigned char version_number = *(unsigned char*)(buf+2);
   unsigned char packet_type = *(unsigned char*)(buf+3);
+  unsigned short header_length = *(unsigned short*)(buf+4);
+  unsigned short in_packet_length = *(unsigned short*)(buf+6);
+  unsigned int seq_number = *(unsigned int*)(buf+8);
+  unsigned int ack_number = *(unsigned int*)(buf+12);
+  
+  char * filename;
+  char * data_buf = buf + header_length;
+  unsigned data_length = in_packet_length - header_length;
+  unsigned last_continuous_seq;
+  unsigned peer_id = bt_peer_id(sock);
+  char chunk_hash[SHA1_HASH_SIZE];
+  int hash_correct;
+  int ack_count;
+  
+  /* check the format of the packet, i.e. magic number 15441 and version 1 */
+  if(magic_number != 15441 || version_number != 1)
+  	return;
+  
+  /* should handle DATA lost and GET lost. If WHOHAS is guaranteed to get 
+   * an IHAVE reponse, handle it as well. Use a queue with timestamp to 
+   * calculate when timeout */
   switch(packet_type){
     case WHOHAS:
       // reply if it has any of the packets that the WHOHAS packet inquires
@@ -239,8 +266,50 @@ void process_inbound_udp(int sock) {
       }
       break;
     case IHAVE:
-      printf("TODO, receive IHAVE packets\n");
+    	/* TODO: select a packet to download */
+    	chunk_hash = pick_a_chunk(packet);
+    	/* add a transmission stream, i.e. associate the stream with peer */
+    	if(start_download(peer_id, chunk_hash))    	
+    		Send_GET(sock, chunk_hash);/* TODO: send GET request */
       break;
+    case GET:
+    	/* if find chunk != NULL*/
+  		if(find_chunk(chunk_hash)) {
+    	/* init a transmission stream and respond data 
+    	 * check if upload queue is full, if not, start uploading */
+		  	if(start_upload(sock, chunk_hash))    	
+		  		init_cwnd(peer_id);/* init cwnd */
+    	}
+    	break;
+    case DATA:
+    	/* get the corresponding chunk of the peer */
+    	chunk_hash = get_chunk_hash(peer_id);
+    	if(chunk_hash != NULL) {
+		  	/* get filename from hash table */
+		  	filename = find_chunk(chunk_hash).filename;
+		  	/* check if the hash is correct, TODO: how to compute hash? */
+		  	hash_correct = !strcmp(compute_hash(data_buf, data_length), chunk_hash);
+		  	/* get a new data packet, write the data to storage
+		  	 * seq_number starts with 1 */
+		  	if(hash_correct)
+		  		write_file(filename, data_buf, data_length, seq_number - 1);
+    	}
+    	if(hash_correct) {
+		  	/* keep track of the packet */
+		  	last_continuous_seq = keep_track(peer_id, seq_number, data_length);
+		  	/* TODO: send an ACK */
+		  	Send_ACK(sock, last_continuous_seq);
+    	}
+    	break;
+    case ACK:
+    	/* move pointer */
+    	ack_count = receive_ack(peer_id, ack_number);
+    	window_control(peer_id, ack_count);
+    	break;
+    case DENIED:
+    	abort_download(peer_id);
+    	/* remove the transmission stream */
+    	break;
     default:
       printf("Unexpected packet type!\n");
       break;
@@ -332,6 +401,10 @@ void peer_run(bt_config_t *config) {
     perror("peer_run could not bind socket");
     exit(-1);
   }
+  
+  /* init tracker and controller */
+  init_tracker(config->max_conn);
+  init_controller(config->max_conn);
   
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   parse_has_get_chunk_file(config->has_chunk_file, &has_chunks);

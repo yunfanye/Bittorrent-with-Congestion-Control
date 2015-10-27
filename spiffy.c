@@ -52,12 +52,12 @@ int spiffy_recvfrom (int socket, void *buffer, size_t size, int flags, struct so
 
 	char *newbuf = NULL;
 	spiffy_header s_head;
-        socklen_t local_fromlen;
+        //socklen_t local_fromlen;
 	int retVal;
 	struct sockaddr_in sRecvAddr;
 
 	*lengthPtr = sizeof(struct sockaddr_in);
-        local_fromlen = sizeof(struct sockaddr_in);
+        //local_fromlen = sizeof(struct sockaddr_in);
 
 	if (!giSpiffyEnabled) {
 		printf("Spiffy not enabled, using normal recvfrom\n");

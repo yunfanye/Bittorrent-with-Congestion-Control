@@ -62,6 +62,25 @@ bt_peer_t *bt_peer_info(const bt_config_t *config, int peer_id)
   }
   return NULL;
 }
+
+/* find peer id using socket */
+int bt_peer_id(int socket)
+{
+	struct sockaddr_in peer_addr;
+	socklen_t peer_len;
+	peer_len = sizeof(struct sockaddr_in);
+	getpeername(socket, (struct sockaddr *) &peer_addr, &peer_len);
+
+  bt_peer_t *p;
+  for (p = config->peers; p != NULL; p = p->next) {
+  	/* port and ip addr match */
+    if (p -> addr.sin_port == peer_addr.sin_port &&
+    	p -> addr.sin_addr.s_addr == peer_addr.sin_addr.s_addr) {
+      return p -> id;
+    }
+  }
+  return -1;
+}
  
 void bt_parse_command_line(bt_config_t *config) {
   int c, old_optind;
