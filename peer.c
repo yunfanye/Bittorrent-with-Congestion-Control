@@ -267,6 +267,7 @@ void process_inbound_udp(int sock) {
       break;
     case IHAVE:
     	/* TODO: select a packet to download */
+
     	chunk_hash = pick_a_chunk(packet);
     	/* add a transmission stream, i.e. associate the stream with peer */
     	if(start_download(peer_id, chunk_hash))    	
