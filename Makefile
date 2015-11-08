@@ -32,6 +32,9 @@ make-chunks: $(MK_CHUNK_OBJS)
 clean:
 	rm -f *.o *~ $(BINS) $(TESTBINS)
 
+network.o: network.c network.h
+	$(CC) $(CFLAGS) -c $^
+
 bt_parse.c: bt_parse.h
 
 # The debugging utility code
