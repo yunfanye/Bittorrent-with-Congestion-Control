@@ -67,7 +67,7 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
   request->chunks = (struct Chunk*)malloc(sizeof(struct Chunk) * chunk_count);
   p_chunk = request->chunks;
   i = 0;
-  int tempnum;
+  //int tempnum;
   while (fgets(line, MAX_LINE_LENGTH, f)) {
     printf("%d\n", i);
     sscanf(line, "%d %s", &(p_chunk[i].id), hash);
