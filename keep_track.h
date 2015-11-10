@@ -12,7 +12,7 @@ struct packet_record {
 struct sent_packet {
 	unsigned seq;
 	unsigned timestamp;
-	struct packet_record * next;
+	struct sent_packet * next;
 };
 
 /*******************************************************

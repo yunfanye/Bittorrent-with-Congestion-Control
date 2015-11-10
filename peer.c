@@ -109,12 +109,9 @@ void process_inbound_udp(int sock) {
     	if(chunk_hash != NULL) {
 		  	/* get filename from hash table */
 		  	filename = find_chunk(chunk_hash).filename;
-		  	/* check if the hash is correct, TODO: how to compute hash? */
-		  	hash_correct = !strcmp(compute_hash(data_buf, data_length), chunk_hash);
 		  	/* get a new data packet, write the data to storage
 		  	 * seq_number starts with 1 */
-		  	if(hash_correct)
-		  		write_file(filename, data_buf, data_length, seq_number - 1);
+		  	write_file(filename, data_buf, data_length, seq_number - 1);
     	}
     	if(hash_correct) {
 		  	/* keep track of the packet */
@@ -124,7 +121,7 @@ void process_inbound_udp(int sock) {
     	}
     	break;
     case ACK:
-    	/* move pointer */
+    	/* TODO: move pointer */
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
     	break;

@@ -6,7 +6,7 @@
 #include "util.h"
 #include <time.h>
 
-#define ABS(x) ((x)>=(0)?(x)(-x))
+#define ABS(x) ((x)>=(0)?(x):(-x))
 /* no valid identity can be 0 */
 #define ID_NULL	0
 /* fixed chunk size of 512 KB */
