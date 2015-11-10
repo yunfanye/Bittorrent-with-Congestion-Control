@@ -9,11 +9,17 @@
 #define RECEIVING 1
 #define NOT_STARTED 2
 
+#define CHUNK_DATA_SIZE 
+
+
 /* each chunk */
 struct Chunk {
 	int id;
 	char hash[SHA1_HASH_SIZE];
 	int state;	/* 0 owned, 1 receiving */
+	char* data;
+	int received_seq_number;
+	int received_byte_number;
 };
 
 struct Request{

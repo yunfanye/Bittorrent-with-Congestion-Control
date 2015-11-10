@@ -38,7 +38,7 @@ void fill_header(char* packet_header, unsigned char packet_type, unsigned short 
 
 // Besides passing in type, also pass some necessary fields as parameters
 // Other fields in the parameters can be arbitrary values
-// To make a WHOHAS packet, pass in the request and packet_count
+// To make a WHOHAS packet, pass in the request and *packet_count
 // To make a IHAVE packet, pass in a WHOHAS packet as packet_in
 // To make a Get packet, pass in p_chunk
 // 
@@ -150,21 +150,21 @@ void whohas_flooding(struct Request* request){
   return;
 }
 
-void send_packet_with_window_constraint(int peer_id, struct packet packet, int socket, struct sockaddr* dst_addr){
-  int window_size = get_cwnd_size(peer_id);
-  int pending_acks = provider_connection->last_packet_sent - provider_connection->last_packet_acked;
-  // if sending window is full, return
-  if(pending_acks == window_size){
-    return;
-  }
-  if(pending_acks > window_size){
-    printf("ERROR: Should not happen, window size smaller than pending acks\n");
-    return;
-  }
-  if(provider_connection->last_packet_sent == CHUNK_DATA_NUM){
-    return;
-  }
-}
+// void send_packet_with_window_constraint(int peer_id, struct packet packet, int socket, struct sockaddr* dst_addr){
+//   int window_size = get_cwnd_size(peer_id);
+//   int pending_acks = provider_connection->last_packet_sent - provider_connection->last_packet_acked;
+//   // if sending window is full, return
+//   if(pending_acks == window_size){
+//     return;
+//   }
+//   if(pending_acks > window_size){
+//     printf("ERROR: Should not happen, window size smaller than pending acks\n");
+//     return;
+//   }
+//   if(provider_connection->last_packet_sent == CHUNK_DATA_NUM){
+//     return;
+//   }
+// }
 
 int validate_packet(unsigned short magic_number, unsigned char version_number, unsigned char packet_type){
   if(magic_number!=MAGIC_NUMBER){

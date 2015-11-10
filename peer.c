@@ -70,36 +70,44 @@ void process_inbound_udp(int sock) {
   unsigned data_length = in_packet_length - header_length;
   unsigned last_continuous_seq;
   unsigned peer_id = bt_peer_id(sock);
-  char chunk_hash[SHA1_HASH_SIZE];
+  // char chunk_hash[SHA1_HASH_SIZE];
+  char* chunk_hash = NULL;
   int hash_correct;
   int ack_count;
   struct packet* packet;
-  
+  struct Chunk* p_chunk;
+  int chunk_id;
   /* should handle DATA lost and GET lost. If WHOHAS is guaranteed to get 
    * an IHAVE reponse, handle it as well. Use a queue with timestamp to 
    * calculate when timeout */
   switch(packet_type){
     case WHOHAS:
       // reply if it has any of the packets that the WHOHAS packet inquires
-      packet = make_packet(IHAVE, NULL, NULL, 0, 0, 0, packet_in, NULL, NULL);
+      packet = make_packet(IHAVE, NULL, NULL, 0, 0, 0, incoming_packet, NULL, NULL);
       if(packet!=NULL){
-        send_packet(packet, sock, (struct sockaddr*)&from);
+        send_packet(*packet, sock, (struct sockaddr*)&from);
         free(packet);
       }
       break;
     case IHAVE:
-    	/* TODO: select a packet to download */
-    	chunk_hash = pick_a_chunk(packet);
-    	/* add a transmission stream, i.e. associate the stream with peer */
-    	if(start_download(peer_id, chunk_hash)){
-        struct packet* packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
-        send_packet(packet, sock, (struct sockaddr*)&from);
-        free(packet);
+      if(current_request!=NULL){
+        // TODO: may need to update timestamp for the new current_request
+        // pick a chunk and mark the chunk as RECEIVING
+        chunk_hash = pick_a_chunk(incoming_packet, &p_chunk);
+        if(chunk_hash!=NULL){
+          /* add a transmission stream, i.e. associate the stream with peer */
+          if(start_download(peer_id, chunk_hash)){
+            packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
+            send_packet(*packet, sock, (struct sockaddr*)&from);
+            free(packet);
+          }
+        }
       }
       break;
     case GET:
     	/* if find chunk != NULL*/
-  		if(find_chunk(chunk_hash)) {
+      chunk_hash = (char*)(incoming_packet+20);
+  		if(find_chunk(chunk_hash)==1){
     	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
 		  	if(start_upload(sock, chunk_hash))    	
@@ -109,36 +117,36 @@ void process_inbound_udp(int sock) {
     case DATA:
     	/* get the corresponding chunk of the peer */
     	chunk_hash = get_chunk_hash(peer_id);
-    	if(chunk_hash != NULL) {
-		  	/* get filename from hash table */
-		  	filename = find_chunk(chunk_hash).filename;
-		  	/* check if the hash is correct, TODO: how to compute hash? */
-		  	hash_correct = !strcmp(compute_hash(data_buf, data_length), chunk_hash);
-		  	/* get a new data packet, write the data to storage
-		  	 * seq_number starts with 1 */
-		  	write_file(filename, data_buf, data_length, seq_number - 1);
-    	}
+      chunk_id = get_chunk_id(chunk_hash, current_request);
     	if(hash_correct) {
 		  	/* keep track of the packet */
 		  	last_continuous_seq = keep_track(peer_id, seq_number, data_length);
         // ignore historical packets
-        if(seq_number<last_continuous_seq+1)){
+        if(seq_number<last_continuous_seq+1){
             return;
         } 
         // later packet arrived first, send duplicate ACK
-        else if(seq_number>last_continuous_seq+1)){
+        else if(seq_number>last_continuous_seq+1){
             packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
-            send_packet(packet, sock, (struct sockaddr*)&from);
+            send_packet(*packet, sock, (struct sockaddr*)&from);
             free(packet);
             return;
         }
         // expected packet
         else{
             packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq+1, NULL, NULL, NULL);
-            send_packet(packet, sock, (struct sockaddr*)&from);
+            send_packet(*packet, sock, (struct sockaddr*)&from);
             free(packet);
-            // TODO:save_data_packet, save_chunk(if chunk is separated into multiple packets)
+            // save data to chunk until chunk is filled
+            // each chunk has 512*1024 bytes, each packet has 1500-16 max bytes data
+            save_data_packet(incoming_packet ,chunk_id);
+            // save the whole chunk if finished
+            save_chunk(chunk_id); // verify chunk is done within the function
             // Download next chunk if exists
+            // TODO: when receive IHAVE packet, need to record/update existing peers'
+            // have chunk table
+            
+            // TODO: receive_new_chunk();
         }
     	}
     	break;
@@ -228,10 +236,11 @@ void peer_run(bt_config_t *config) {
       }
     }
 
-    if(get_time_diff(&last_flood_whohas_time) > WHOHAS_FLOOD_INTERVAL_MS){
-        whohas_flooding(current_request);
-        gettimeofday(&last_flood_whohas_time, NULL);
-    }
+    // Need to do whohas_flooding periodically
+    // if(get_time_diff(&last_flood_whohas_time) > WHOHAS_FLOOD_INTERVAL_MS){
+    //     whohas_flooding(current_request);
+    //     gettimeofday(&last_flood_whohas_time, NULL);
+    // }
     // TODO: 
     if(all_chunk_finished(current_request)){
       free(current_request);
