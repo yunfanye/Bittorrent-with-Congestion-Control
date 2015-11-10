@@ -44,18 +44,18 @@ void process_inbound_udp(int sock) {
   
   fromlen = sizeof(from);
   recv_bytes = spiffy_recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &from, &fromlen);
-  
+  printf("GET INBOUND PACKET\n");
   if(recv_bytes <= 0) {
   	/* conn closed or error occurred, close the socket */
   }
   
-  unsigned short magic_number = *(unsigned short*)buf;
+  unsigned short magic_number = ntohs(*(unsigned short*)buf);
   unsigned char version_number = *(unsigned char*)(buf+2);
   unsigned char packet_type = *(unsigned char*)(buf+3);
-  unsigned short header_length = *(unsigned short*)(buf+4);
-  unsigned short in_packet_length = *(unsigned short*)(buf+6);
-  unsigned int seq_number = *(unsigned int*)(buf+8);
-  unsigned int ack_number = *(unsigned int*)(buf+12);
+  unsigned short header_length = ntohs(*(unsigned short*)(buf+4));
+  unsigned short in_packet_length = ntohs(*(unsigned short*)(buf+6));
+  unsigned int seq_number =ntohl(*(unsigned int*)(buf+8));
+  unsigned int ack_number = ntohl(*(unsigned int*)(buf+12));
   struct packet* incoming_packet = (struct packet*)buf;
   // validate packet
   if(validate_packet(magic_number, version_number, packet_type)<0){
@@ -87,7 +87,8 @@ void process_inbound_udp(int sock) {
       }
       break;
     case IHAVE:
-    print_packet(incoming_packet);
+    	printf("GET IHAVE\n");
+    	//print_packet(incoming_packet);
       update_connections(peer_id, incoming_packet);
       if(current_request!=NULL){
         // TODO: may need to update timestamp for the new current_request

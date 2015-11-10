@@ -3,11 +3,11 @@
 void print_packet(struct packet* packet){
   unsigned short magic_number = ntohs(*(unsigned short*)(packet->header));
   unsigned char version_number = *(unsigned char*)(packet->header+2);
-  unsigned char packet_type = *(unsigned char*)((packet->header)+3);
-  unsigned short header_length = ntohs(*(unsigned short*)((packet->header)+4));
-  unsigned short in_packet_length = ntohs(*(unsigned short*)((packet->header)+6));
-  unsigned int seq_number = ntohl(*(unsigned int*)((packet->header)+8));
-  unsigned int ack_number = ntohl(*(unsigned int*)((packet->header)+12));
+  unsigned char packet_type = *(unsigned char*)(packet->header+3);
+  unsigned short header_length = ntohs(*(unsigned short*)(packet->header+4));
+  unsigned short in_packet_length = ntohs(*(unsigned short*)(packet->header+6));
+  unsigned int seq_number = ntohl(*(unsigned int*)(packet->header+8));
+  unsigned int ack_number = ntohl(*(unsigned int*)(packet->header+12));
   printf("Printing packet....................................................................\n");
   printf("magic_number: %hu, version_number: %hhu, packet_type: %hhu\n", magic_number, version_number, packet_type);
   printf("header_length: %hu, packet_length: %hu\n", header_length, in_packet_length);
@@ -160,6 +160,8 @@ void whohas_flooding(struct Request* request){
   int packet_count = 0;
   struct packet* packets = make_packet(WHOHAS, NULL, NULL, -1, 0, 0, NULL, &packet_count, request);
   for(int i=0;i<packet_count;i++){
+  int i;
+  for(i=0;i<packet_count;i++){
     print_packet(&packets[i]);
   }
   if(packet_count!=0){
