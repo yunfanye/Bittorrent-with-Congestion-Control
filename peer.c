@@ -119,8 +119,9 @@ void process_inbound_udp(int sock) {
     	if(hash_correct) {
 		  	/* keep track of the packet */
 		  	last_continuous_seq = keep_track(peer_id, seq_number, data_length);
-		  	/* TODO: send an ACK */
-		  	Send_ACK(sock, last_continuous_seq);
+        struct packet* packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
+        send_packet(packet, sock, (struct sockaddr*)&from);
+        free(packet);
     	}
     	break;
     case ACK:
@@ -197,6 +198,9 @@ void peer_run(bt_config_t *config) {
   init_tracker(config->max_conn);
   init_controller(config->max_conn);
   
+  sender_connections = NULL;
+  reader_connections = NULL;
+
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   
@@ -215,6 +219,19 @@ void peer_run(bt_config_t *config) {
       if (FD_ISSET(STDIN_FILENO, &readfds)) {
         process_user_input(STDIN_FILENO, userbuf, handle_user_input, "Currently unused");
       }
+    }
+    // in each loop, check all connections and see if timeout happens for each connection
+    // check senders timeout
+    struct connection* p_connection = sender_connections;
+    while(p_connection != NULL){
+        provider_control_by_timeout(temp);
+        p_connection = p_connection->next;
+    }
+    // check readers timeout
+    p_connection = reader_connections;
+    while(temp != NULL){
+        receiver_control_by_timeout(temp);
+        p_connection = p_connection->next;
     }
   }
 }
