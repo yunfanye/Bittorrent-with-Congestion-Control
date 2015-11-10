@@ -59,4 +59,8 @@ int receive_ack(int peer_id, unsigned seq);
 /* map id to index, used when controlling cwnd */
 int get_upload_index_by_id(int id);
 
+/* clean timeout connection. abort connections that have no response for 
+ * a long time, guessing that peer has trouble */
+void clean_timeout();
+
 #endif

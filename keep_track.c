@@ -6,6 +6,15 @@
 #include "util.h"
 #include <time.h>
 
+/* RTT and deviation smoothed coefficient */
+#define ALPHA					0.85
+#define BETA					0.25
+
+/* abort downloading timeout coefficient: when acting as a receiver,
+ * peer may crash or pipe may break; thus, the download stream should be 
+ * aborted when a significant time passes */
+#define ABORT_COEFF		4
+
 #define ABS(x) ((x)>=(0)?(x):(-x))
 /* no valid identity can be 0 */
 #define ID_NULL	0
@@ -20,20 +29,40 @@ static int * download_id_map;
 static char ** download_chunk_map; 
 static int * upload_id_map;
 static int max_conns;
+static unsigned * upload_last_time;
+static unsigned * download_last_time;
 
 /* network parameters */
-static unsigned RTT = 0;
-static unsigned deviation = 0;
-static unsigned RTO;
+static unsigned RTT = 0; /* round trip time */
+static unsigned deviation = 0; /* standard deviation of RTT */
+static unsigned RTO; /* packet timeout */
 
 /* "private" function prototypes */
 
-/* estimate the RTT and network deviation */
+/* estimate the RTT and network deviation, set RTT, deviation and RTO */
 void infer_RTT(unsigned timestamp); 
+
 int finish_download(int index);
 int get_download_index_by_id(int id);
 int add_record(struct packet_record * root, unsigned seq, unsigned len);
 
+
+/* clean timeout connection. abort connections that have no interaction for
+ * a long time, guessing that peer has trouble */
+void clean_timeout() {
+	int i;
+	unsigned long now_time = milli_time();
+	for(i = 0; i < max_conns; i++) {
+		if(upload_id_map[i] != ID_NULL && (now_time - upload_last_time[i]) > 
+			ABORT_COEFF * RTO) {
+			abort_upload(upload_id_map[i]);
+		}
+		if(download_id_map[i] != ID_NULL && (now_time - download_last_time[i]) > 
+			ABORT_COEFF * RTO) {
+			abort_download(download_id_map[i]);
+		}
+	}
+}
 
 /* init the stream tracker */
 int init_tracker(int max) {
@@ -42,7 +71,9 @@ int init_tracker(int max) {
 	sent_queue_head = malloc(max * sizeof(struct sent_packet *));
 	download_id_map = malloc(max * sizeof(int));
 	upload_id_map = malloc(max * sizeof(int));
-	download_chunk_map = malloc(max * sizeof(char *));	
+	download_chunk_map = malloc(max * sizeof(char *));
+	download_last_time = malloc(max * sizeof(unsigned));
+	upload_last_time = malloc(max * sizeof(unsigned));
 	if(download_chunk_map == NULL)
 		return 0;
 	memset(sent_queue_head, 0, max * sizeof(struct sent_packet *));
@@ -52,7 +83,7 @@ int init_tracker(int max) {
 	return 1;
 }
 
-/* Receive data: keep record of the new data packet of seq and len
+/* Receive data packet: keep record of the new data packet of seq and len
  * and return the last continous seq number 
  * inform user if transmission is completed */
 unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
@@ -87,6 +118,9 @@ unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 	last_continous_seq = root -> seq;
 	last_acked_record[index] = root;
 	
+	/* update download last interaction time */
+	download_last_time[index] = milli_time();
+	
 	if(last_continous_seq + root -> length == CHUNK_SIZE) {
 		/* downloading completed */	
 		finish_download(index);
@@ -108,6 +142,7 @@ int start_download(int peer_id, char * chunk_hash) {
 		if(download_id_map[i] == ID_NULL) {
 			download_id_map[i] = peer_id;
 			download_chunk_map[i] = malloc(SHA1_HASH_SIZE);
+			download_last_time[i] = milli_time();
 			memcpy(download_chunk_map[i], chunk_hash, SHA1_HASH_SIZE);
 			/* seq will start at 1, so add a root node to indicate this fact */
 			track_data_packet(peer_id, 0, 1);
@@ -131,6 +166,7 @@ int start_upload(int peer_id) {
 	for(i = 0; i < max_conns; i++) {
 		if(upload_id_map[i] == ID_NULL) {
 			upload_id_map[i] = peer_id;
+			upload_last_time[i] = milli_time();
 			return 1;
 		}
 	}
@@ -150,7 +186,7 @@ unsigned get_timeout_seq(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
 	struct sent_packet * head = sent_queue_head[index];
 	unsigned = seq;
-	if(milli_time() - head -> timestamp > RTO) {
+	if((milli_time() - head -> timestamp) > RTO) {
 		sent_queue_head[index] = head -> next;
 		seq = head -> seq;.
 		free(head);
@@ -188,7 +224,6 @@ int receive_ack(int peer_id, unsigned seq) {
 	/* cumulative ack, clear all in front of queue
 	 * whose seq equal to or less than seq; retransmission may cause 
 	 * reordering, but node is not the head doesn't affect timeout */
-	/* TODO: may consider double-ended queue to solve reordering problem */
 	while(head != NULL && head -> seq <= seq) {
 		if(head -> seq == seq)
 			infer_RTT(head -> timestamp);
@@ -197,6 +232,8 @@ int receive_ack(int peer_id, unsigned seq) {
 		free(tmp);
 		count++;
 	}
+	/* update upload last interaction time */
+	upload_last_time[index] = milli_time();
 	/* TODO: three dup acks should invoke fast retransmission */
 	sent_queue_head[index] = head;
 	return count;
@@ -211,9 +248,11 @@ int receive_ack(int peer_id, unsigned seq) {
 void infer_RTT(unsigned timestamp) {
 	unsigned new_RTT = timestamp - milli_time();
 	unsigned new_dev;
-	RTT = ALPHA * RTT + (1 - ALPHA) * new_RTT;
 	new_dev = ABS(new_RTT - RTT);
-	RTO = RTT + 2 * new_dev;/* inaccurate, TODO */
+	RTT = ALPHA * RTT + (1 - ALPHA) * new_RTT;
+	deviation = BETA * deviation + (1 - BETA) * new_dev;
+	/* Jacobson restransmission */
+	RTO = RTT + 4 * deviation;
 }
 
 int finish_download(int index) {
