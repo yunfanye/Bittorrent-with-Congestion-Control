@@ -105,13 +105,16 @@ unsigned long milli_time() {
 
 uint8_t* pick_a_chunk(struct packet* packet, struct Chunk** chunk_pointer){
   int i=0;
-  struct Chunk* p_chunk=current_request->chunks;
+  struct Chunk* p_chunk = current_request->chunks;
   for(i=0;i<current_request->chunk_number;i++){
+  	printf("contional code: num %d\n", current_request->chunk_number);
     if(p_chunk[i].state==NOT_STARTED && packet_contain_chunk(packet, p_chunk[i].hash)==1){
+    	printf("to return\n");
       p_chunk[i].state = RECEIVING;
       *chunk_pointer = &p_chunk[i];
       return p_chunk[i].hash;
     }
+    printf("after contional code\n");
   }
   *chunk_pointer = NULL;
   return NULL;
@@ -147,11 +150,13 @@ int peer_contain_chunk(int peer_id, uint8_t* hash){
 }
 
 int packet_contain_chunk(struct packet* packet, uint8_t* hash){
-  unsigned char chunk_count = *(unsigned char*)(packet+16);
+	char * buf = (char *)packet;
+  unsigned char chunk_count = *(unsigned char*)(buf+16);
   unsigned char i = 0;
   char* packet_chunk = NULL;
   for(i=0;i<chunk_count;i++){
-    packet_chunk = (char*)(packet+20+20*i);
+  	printf("chunk count %d\n", chunk_count);
+    packet_chunk = (char*)(buf+20+20*i);
     if(memcmp(hash, packet_chunk, SHA1_HASH_SIZE) == 0){
       return 1;
     }
