@@ -20,6 +20,26 @@ int get_chunk_id(uint8_t* hash, struct Request* chunk_table){
   return -1;
 }
 
+void print_request(struct Request* request){
+  if(request==NULL){
+    printf("NULL request\n");
+    return;
+  }
+  printf("Filename: %s, chunk_number: %d\n", request->filename, request->chunk_number);
+  print_chunks(request->chunks, request->chunk_number);
+}
+
+void print_chunks(struct Chunk* chunks, int chunk_number){
+  int i=0;
+  char hash_buffer[SHA1_HASH_SIZE * 2 + 1];
+  for (i = 0; i < chunk_number; ++i)
+  {
+    memset(hash_buffer, 0, SHA1_HASH_SIZE * 2 + 1);
+    binary2hex(chunks[i].hash, SHA1_HASH_SIZE, hash_buffer);
+    printf("Hash: %s\n", hash_buffer);
+  }
+}
+
 // parse has/get chunk file and return request if output_filename != NULL
 // if called by get request with a output_filename, then chunk status is set to NOT_STARTED
 // if called during peer initilization with output_filename=NULL, then chunk status is set to OWNED
@@ -66,6 +86,7 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
     memcpy(request->filename, output_filename, FILE_NAME_SIZE);
   }
   printf("return from parse\n");
+  print_request(request);
   return request;
 }
 

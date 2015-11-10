@@ -222,8 +222,9 @@ void peer_run(bt_config_t *config) {
   connections = NULL;
   has_chunk_table = NULL;
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
+  print_request(has_chunk_table);
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
-  // struct Request* tempRequ = parse_has_get_chunk_file(config->has_chunk_file, NULL);
+  print_request(has_chunk_table);
   printf("asdas\n");
   while (1) {
     int nfds;
@@ -247,7 +248,6 @@ void peer_run(bt_config_t *config) {
     //     whohas_flooding(current_request);
     //     gettimeofday(&last_flood_whohas_time, NULL);
     // }
-    // TODO: 
     if(all_chunk_finished(current_request)){
       free(current_request);
       current_request = NULL;

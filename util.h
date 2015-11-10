@@ -27,6 +27,7 @@ void update_connections(int peer_id, struct packet* incoming_packet);
 
 void print_connection(struct connection* connection);
 void print_connections();
-
+void print_request(struct Request* request);
+void print_chunks(struct Chunk* chunks, int chunk_number);
 #endif
 
