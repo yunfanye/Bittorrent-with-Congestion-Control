@@ -22,8 +22,8 @@ void print_packet(struct packet* packet){
 }
 
 
-void fill_header(char* packet_header, unsigned char packet_type, unsigned short packet_length, unsigned int seq_number, unsigned int ack_number){
-  packet_header = (char*)malloc(16);
+void fill_header(char** packet_header, unsigned char packet_type, unsigned short packet_length, unsigned int seq_number, unsigned int ack_number){
+  *packet_header = (char*)malloc(16);
   unsigned short magic_number = MAGIC_NUMBER;
   unsigned char version_number = VERSION_NUMBER;
   short header_length = HEADER_LENGTH;
@@ -49,7 +49,7 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
   struct packet* packet = NULL;
   switch(packet_type){
     case WHOHAS:
-      for(j=0;i<request->chunk_number;j++){
+      for(i=0;i<request->chunk_number;i++){
         // TODO: here may need to change add more state to chunks
         if(request->chunks[i].state == NOT_STARTED){
           unfinished_chunk_count++;
@@ -61,6 +61,7 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
       else{
         *packet_count = unfinished_chunk_count/CHUNK_PER_PACKET + 1; 
       }
+      printf("make packet: packet_count: %d\n", *packet_count);
       struct packet* packets = (struct packet*)malloc(sizeof(struct packet)* (*packet_count));
       if(unfinished_chunk_count==0){
         packets = NULL;
@@ -72,7 +73,7 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
         if(*packet_count <= j+1){
           chunk_count = (unsigned char)(unfinished_chunk_count - j*CHUNK_PER_PACKET);
         }
-        fill_header(packets[j].header, WHOHAS, chunk_count*SHA1_HASH_SIZE+HEADER_LENGTH+CHUNK_NUMBER_AND_PADDING_SIZE, 0, 0);
+        fill_header(&packets[j].header, WHOHAS, chunk_count*SHA1_HASH_SIZE+HEADER_LENGTH+CHUNK_NUMBER_AND_PADDING_SIZE, 0, 0);
         *(packets[j].payload) = chunk_count;
         int k=0;
         for(k=0;k<chunk_count;k++){
@@ -84,6 +85,8 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
             } 
           }
         }
+        printf("%d\n", j);
+        print_packet(&packets[j]);
       }
       return packets;
     case IHAVE:
@@ -101,39 +104,49 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
         free(packet);
         packet = NULL;
       }
-      fill_header(packet->header, IHAVE, count_ihave*SHA1_HASH_SIZE+HEADER_LENGTH+CHUNK_NUMBER_AND_PADDING_SIZE, 0, 0);
+      fill_header(&packet->header, IHAVE, count_ihave*SHA1_HASH_SIZE+HEADER_LENGTH+CHUNK_NUMBER_AND_PADDING_SIZE, 0, 0);
       *(packet->payload) = count_ihave;
     case GET:
       packet = (struct packet*)malloc(sizeof(struct packet));
-      fill_header(packet->header, GET, SHA1_HASH_SIZE+HEADER_LENGTH, 0, 0);
+      fill_header(&packet->header, GET, SHA1_HASH_SIZE+HEADER_LENGTH, 0, 0);
       memcpy(packet->payload, p_chunk->hash, SHA1_HASH_SIZE);
     case DATA:
       packet = (struct packet*)malloc(sizeof(struct packet));
-      fill_header(packet->header, DATA, data_size+HEADER_LENGTH, seq_number, 0);
+      fill_header(&packet->header, DATA, data_size+HEADER_LENGTH, seq_number, 0);
       memcpy(packet->payload, data, data_size);
     case ACK:
       packet = (struct packet*)malloc(sizeof(struct packet));
-      fill_header(packet->header, ACK, HEADER_LENGTH, 0, ack_number);
+      fill_header(&packet->header, ACK, HEADER_LENGTH, 0, ack_number);
   }
   return packet;
 }
 
 // send one packet
 void send_packet(struct packet packet, int socket, struct sockaddr* dst_addr){
+  printf("send_packet\n");
+  printf("send_packet, %d\n", *(unsigned short*)(packet.header+6));
   spiffy_sendto(socket, &packet, *(unsigned short*)(packet.header+6), 0, dst_addr, sizeof(*dst_addr));
+  printf("send_packet\n");
 }
 
 // send WHOHAS to all peers
 void send_whohas_packet_to_all(struct packet* packets, int packet_count, int socket, struct sockaddr* dst_addr){
   int i = 0;
   for(i=0;i<packet_count;i++){
+    printf("send_whohas_packet_to_all\n");
     send_packet(packets[i], socket, dst_addr);
+    printf("send_whohas_packet_to_all2\n");
   }
 }
 
 void whohas_flooding(struct Request* request){
   int packet_count = 0;
   struct packet* packets = make_packet(WHOHAS, NULL, NULL, -1, 0, 0, NULL, &packet_count, request);
+  printf("%d\n", packet_count);
+  for(int i=0;i<packet_count;i++){
+    print_packet(&packets[i]);
+  }
+  printf("asdasd\n");
   if(packet_count!=0){
     struct bt_peer_s* peer = config.peers;
     while(peer!=NULL) {
@@ -144,8 +157,10 @@ void whohas_flooding(struct Request* request){
           send_whohas_packet_to_all(packets, packet_count, sock, (struct sockaddr*)&peer->addr);
           peer = peer->next;
         }
+        printf("whileloop\n");
     }
   }
+  printf("asda2332sd\n");
   free(packets);
   return;
 }

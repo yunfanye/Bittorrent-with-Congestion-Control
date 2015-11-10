@@ -174,6 +174,7 @@ void process_get(char *chunkfile, char *outputfile){
   //struct has_chunk* get_chunks;
   //get_chunks = NULL;
   current_request = parse_has_get_chunk_file(chunkfile, outputfile);
+  print_request(current_request);
   whohas_flooding(current_request);
 }
 
@@ -247,6 +248,7 @@ void peer_run(bt_config_t *config) {
     //     gettimeofday(&last_flood_whohas_time, NULL);
     // }
     if(all_chunk_finished(current_request)){
+      free(current_request->filename);      
       free(current_request);
       current_request = NULL;
     }
