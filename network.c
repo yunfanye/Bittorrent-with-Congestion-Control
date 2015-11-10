@@ -1,21 +1,42 @@
 #include "network.h"
 
 void print_packet(struct packet* packet){
-  unsigned short magic_number = *(unsigned short*)packet;
-  unsigned char version_number = *(unsigned char*)(packet+2);
-  unsigned char packet_type = *(unsigned char*)(packet+3);
-  unsigned short header_length = *(unsigned short*)(packet+4);
-  unsigned short in_packet_length = *(unsigned short*)(packet+6);
-  unsigned int seq_number = *(unsigned int*)(packet+8);
-  unsigned int ack_number = *(unsigned int*)(packet+12);
+  unsigned short magic_number = ntohs(*(unsigned short*)(packet->header));
+  unsigned char version_number = *(unsigned char*)(packet->header+2);
+  unsigned char packet_type = *(unsigned char*)((packet->header)+3);
+  unsigned short header_length = ntohs(*(unsigned short*)((packet->header)+4));
+  unsigned short in_packet_length = ntohs(*(unsigned short*)((packet->header)+6));
+  unsigned int seq_number = ntohl(*(unsigned int*)((packet->header)+8));
+  unsigned int ack_number = ntohl(*(unsigned int*)((packet->header)+12));
   printf("Printing packet....................................................................\n");
   printf("magic_number: %hu, version_number: %hhu, packet_type: %hhu\n", magic_number, version_number, packet_type);
   printf("header_length: %hu, packet_length: %hu\n", header_length, in_packet_length);
   printf("seq_number: %u, ack_number: %u\n", seq_number, ack_number);
   unsigned short i = 0;
   char ascii_buf[CHUNK_HASH_SIZE];
-  for(i=20;i<in_packet_length;i=i+20){
-    binary2hex((uint8_t *)(packet+i), SHA1_HASH_SIZE, ascii_buf);
+  for(i=4;i<in_packet_length-header_length;i=i+20){
+    binary2hex((uint8_t *)(&(packet->payload[i])), SHA1_HASH_SIZE, ascii_buf);
+    printf("hash: %s\n", ascii_buf);
+  }
+  printf("End printing packet....................................................................\n");
+}
+
+void print_incoming_packet(struct packet* packet){
+  unsigned short magic_number = ntohs(*(unsigned short*)(packet->header));
+  unsigned char version_number = *(unsigned char*)(packet->header+2);
+  unsigned char packet_type = *(unsigned char*)((packet->header)+3);
+  unsigned short header_length = ntohs(*(unsigned short*)((packet->header)+4));
+  unsigned short in_packet_length = ntohs(*(unsigned short*)((packet->header)+6));
+  unsigned int seq_number = ntohl(*(unsigned int*)((packet->header)+8));
+  unsigned int ack_number = ntohl(*(unsigned int*)((packet->header)+12));
+  printf("Printing packet....................................................................\n");
+  printf("magic_number: %hu, version_number: %hhu, packet_type: %hhu\n", magic_number, version_number, packet_type);
+  printf("header_length: %hu, packet_length: %hu\n", header_length, in_packet_length);
+  printf("seq_number: %u, ack_number: %u\n", seq_number, ack_number);
+  unsigned short i = 0;
+  char ascii_buf[CHUNK_HASH_SIZE];
+  for(i=4;i<in_packet_length-header_length;i=i+20){
+    binary2hex((uint8_t *)(&(packet->payload[i])), SHA1_HASH_SIZE, ascii_buf);
     printf("hash: %s\n", ascii_buf);
   }
   printf("End printing packet....................................................................\n");
@@ -27,13 +48,13 @@ void fill_header(char** packet_header, unsigned char packet_type, unsigned short
   unsigned short magic_number = MAGIC_NUMBER;
   unsigned char version_number = VERSION_NUMBER;
   short header_length = HEADER_LENGTH;
-  *(unsigned short*)packet_header = htons(magic_number);
-  *(unsigned char*)(packet_header+2) = version_number;
-  *(unsigned char*)(packet_header+3) = packet_type;
-  *(unsigned short*)(packet_header+4) = htons(header_length);
-  *(unsigned short*)(packet_header+6) = htons(packet_length);
-  *(unsigned int*)(packet_header+8) = htonl(seq_number);
-  *(unsigned int*)(packet_header+12) = htonl(ack_number);
+  *(unsigned short*)(*packet_header) = htons(magic_number);
+  *(unsigned char*)(*packet_header+2) = version_number;
+  *(unsigned char*)(*packet_header+3) = packet_type;
+  *(unsigned short*)(*packet_header+4) = htons(header_length);
+  *(unsigned short*)(*packet_header+6) = htons(packet_length);
+  *(unsigned int*)(*packet_header+8) = htonl(seq_number);
+  *(unsigned int*)(*packet_header+12) = htonl(ack_number);
 }
 
 // Besides passing in type, also pass some necessary fields as parameters
@@ -61,7 +82,6 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
       else{
         *packet_count = unfinished_chunk_count/CHUNK_PER_PACKET + 1; 
       }
-      printf("make packet: packet_count: %d\n", *packet_count);
       struct packet* packets = (struct packet*)malloc(sizeof(struct packet)* (*packet_count));
       if(unfinished_chunk_count==0){
         packets = NULL;
@@ -85,8 +105,6 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
             } 
           }
         }
-        printf("%d\n", j);
-        print_packet(&packets[j]);
       }
       return packets;
     case IHAVE:
@@ -123,30 +141,27 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
 
 // send one packet
 void send_packet(struct packet packet, int socket, struct sockaddr* dst_addr){
-  printf("send_packet\n");
-  printf("send_packet, %d\n", *(unsigned short*)(packet.header+6));
-  spiffy_sendto(socket, &packet, *(unsigned short*)(packet.header+6), 0, dst_addr, sizeof(*dst_addr));
-  printf("send_packet\n");
+  char buffer[MAX_PACKET_SIZE];
+  memcpy(buffer, packet.header, 16);
+  memcpy(buffer+16, packet.payload, MAX_PAYLOAD_SIZE);
+  unsigned short packet_length = ntohs(*(unsigned short*)(packet.header+6));
+  spiffy_sendto(socket, buffer, packet_length, 0, dst_addr, sizeof(*dst_addr));
 }
 
 // send WHOHAS to all peers
 void send_whohas_packet_to_all(struct packet* packets, int packet_count, int socket, struct sockaddr* dst_addr){
   int i = 0;
   for(i=0;i<packet_count;i++){
-    printf("send_whohas_packet_to_all\n");
     send_packet(packets[i], socket, dst_addr);
-    printf("send_whohas_packet_to_all2\n");
   }
 }
 
 void whohas_flooding(struct Request* request){
   int packet_count = 0;
   struct packet* packets = make_packet(WHOHAS, NULL, NULL, -1, 0, 0, NULL, &packet_count, request);
-  printf("%d\n", packet_count);
   for(int i=0;i<packet_count;i++){
     print_packet(&packets[i]);
   }
-  printf("asdasd\n");
   if(packet_count!=0){
     struct bt_peer_s* peer = config.peers;
     while(peer!=NULL) {
@@ -157,10 +172,8 @@ void whohas_flooding(struct Request* request){
           send_whohas_packet_to_all(packets, packet_count, sock, (struct sockaddr*)&peer->addr);
           peer = peer->next;
         }
-        printf("whileloop\n");
     }
   }
-  printf("asda2332sd\n");
   free(packets);
   return;
 }

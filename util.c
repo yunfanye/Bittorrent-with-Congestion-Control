@@ -162,9 +162,9 @@ int packet_contain_chunk(struct packet* packet, uint8_t* hash){
 // save data in the packet
 void save_data_packet(struct packet* in_packet, int chunk_id){
   struct Chunk* chunk = &current_request->chunks[chunk_id];
-  unsigned int seq_number = *(unsigned int*)((char*)in_packet+8);
-  unsigned short header_length = *(unsigned short*)((char*)in_packet+4);
-  unsigned short packet_length = *(unsigned short*)((char*)in_packet+6);
+  unsigned int seq_number = ntohl(*(unsigned int*)((char*)in_packet+8));
+  unsigned short header_length = ntohs(*(unsigned short*)((char*)in_packet+4));
+  unsigned short packet_length = ntohs(*(unsigned short*)((char*)in_packet+6));
   int data_size = packet_length - header_length;
   if(data_size < 0){
     data_size = 0;
@@ -248,7 +248,7 @@ void update_connections(int peer_id, struct packet* incoming_packet){
 
 // completely delete previous chunk table and create new one
 struct Chunk* update_chunks(struct Chunk* chunks, int* chunk_count, struct packet* packet){
-  unsigned short packet_length = *(unsigned short*)((char*)packet+6);
+  unsigned short packet_length = ntohs(*(unsigned short*)((char*)packet+6));
   int i=0;
   char* temp_hash = NULL;
   free(chunks);
