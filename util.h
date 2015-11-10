@@ -7,6 +7,7 @@
 #include "peer.h"
 #include "file.h"
 #include <sys/time.h>
+#include <assert.h>
 
 int find_chunk(uint8_t* hash);
 struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename);
@@ -26,6 +27,7 @@ void update_connections(int peer_id, struct packet* incoming_packet);
 
 void print_connection(struct connection* connection);
 void print_connections();
-
+void print_request(struct Request* request);
+void print_chunks(struct Chunk* chunks, int chunk_number);
 #endif
 

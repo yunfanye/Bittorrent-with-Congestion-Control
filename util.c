@@ -20,6 +20,26 @@ int get_chunk_id(uint8_t* hash, struct Request* chunk_table){
   return -1;
 }
 
+void print_request(struct Request* request){
+  if(request==NULL){
+    printf("NULL request\n");
+    return;
+  }
+  printf("Filename: %s, chunk_number: %d\n", request->filename, request->chunk_number);
+  print_chunks(request->chunks, request->chunk_number);
+}
+
+void print_chunks(struct Chunk* chunks, int chunk_number){
+  int i=0;
+  char hash_buffer[SHA1_HASH_SIZE * 2 + 1];
+  for (i = 0; i < chunk_number; ++i)
+  {
+    memset(hash_buffer, 0, SHA1_HASH_SIZE * 2 + 1);
+    binary2hex(chunks[i].hash, SHA1_HASH_SIZE, hash_buffer);
+    printf("Hash: %s\n", hash_buffer);
+  }
+}
+
 // parse has/get chunk file and return request if output_filename != NULL
 // if called by get request with a output_filename, then chunk status is set to NOT_STARTED
 // if called during peer initilization with output_filename=NULL, then chunk status is set to OWNED
@@ -31,8 +51,8 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
   uint8_t binary_hash[SHA1_HASH_SIZE];
   char line[MAX_LINE_LENGTH];
   struct Chunk* p_chunk;
-
   f = fopen(chunk_file, "r");
+  assert(f != NULL);
   while (fgets(line, MAX_LINE_LENGTH, f) != NULL) {
     if (line[0] == '#'){
       continue;
@@ -40,10 +60,10 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
     chunk_count++;
   }
   fseek(f, 0, SEEK_SET);
-
   struct Request* request = (struct Request*)malloc(sizeof(struct Request));
   request->filename = NULL;
   request->chunk_number = chunk_count;
+  printf("%s, %d\n", chunk_file, request->chunk_number);
   request->chunks = (struct Chunk*)malloc(sizeof(struct Chunk) * chunk_count);
   p_chunk = request->chunks;
   i = 0;
@@ -62,10 +82,11 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
     p_chunk[i].data = NULL;
   }
   fclose(f);
-
   if(output_filename!=NULL){
     memcpy(request->filename, output_filename, FILE_NAME_SIZE);
   }
+  printf("return from parse\n");
+  print_request(request);
   return request;
 }
 
@@ -183,6 +204,9 @@ void save_chunk(int chunk_id){
 }
 
 int all_chunk_finished(){
+  if(current_request==NULL){
+    return 0;
+  }
   int i=0;
   for(i=0;i<current_request->chunk_number;i++){
     if(current_request->chunks[i].state!=OWNED){

@@ -1,2 +1,6 @@
 *.gch
 *.o
+peer
+make-chunks
+test_debug
+test_input_buffer

@@ -205,7 +205,6 @@ void peer_run(bt_config_t *config) {
     perror("peer_run could not create socket");
     exit(-1);
   }
-  
   bzero(&myaddr, sizeof(myaddr));
   myaddr.sin_family = AF_INET;
   myaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -215,15 +214,18 @@ void peer_run(bt_config_t *config) {
     perror("peer_run could not bind socket");
     exit(-1);
   }
-  
+
   /* init tracker and controller */
   init_tracker(config->max_conn);
   init_controller(config->max_conn);
   current_request = NULL;
   connections = NULL;
+  has_chunk_table = NULL;
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
+  print_request(has_chunk_table);
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
-  
+  print_request(has_chunk_table);
+  printf("asdas\n");
   while (1) {
     int nfds;
     FD_SET(STDIN_FILENO, &readfds);
@@ -246,7 +248,6 @@ void peer_run(bt_config_t *config) {
     //     whohas_flooding(current_request);
     //     gettimeofday(&last_flood_whohas_time, NULL);
     // }
-    // TODO: 
     if(all_chunk_finished(current_request)){
       free(current_request);
       current_request = NULL;
