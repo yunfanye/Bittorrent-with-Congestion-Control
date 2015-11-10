@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+
 #include "debug.h"
 #include "spiffy.h"
 #include "bt_parse.h"
@@ -17,7 +18,6 @@
 #include "chunk.h"
 #include "network.h"
 #include "keep_track.h"
-#include "connection.h"
 
 
 

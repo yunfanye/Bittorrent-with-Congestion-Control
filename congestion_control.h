@@ -24,10 +24,10 @@ int init_controller(int max);
 int get_cwnd_size(int peer_id);
 
 /* control cwnd window */
-void window_control(int peer_id, int count); 
+int window_control(int peer_id, int count);
 
 /* call window_timeout when a packet timeouts */
-int window_timeout(int peer_id);
+void window_timeout(int peer_id);
 
 void init_cwnd(int peer_id);
 

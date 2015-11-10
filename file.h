@@ -1,8 +1,12 @@
 #ifndef _FILE_H_
 #define _FILE_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
 /* open or create a file */
-int open_file(const char *pathname);
+int open_file(char *pathname);
 
 /* create a file with fixed size */
 int create_file(char * filename, int size);
@@ -12,6 +16,6 @@ int create_file(char * filename, int size);
 int write_file(char * filename, char * buf, int length, int offset);
 
 /* close the file */
-int close_file(int fd);
+void close_file(int fd);
 
 #endif

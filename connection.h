@@ -18,33 +18,6 @@
 #define DATA_TIMEOUT_THRESHOLD 4000000 // in microseconds
 
 
-struct connection{
-	// used fields
-	int peer_id;
-	int chunk_count;
-	struct Chunk* chunks;
-	struct connection* next;
-
-	// unused fields
-	int id;
-	struct sockaddr_in addr;
-
-	int ssthresh;
-	int window_size;
-	
-	int last_ack_number;
-	int last_sent_number;
-	int number_duplicate_ack;
-	int state;
-
-	int RTT;
-
-	struct timeval CONGESTION_AVOIDANCE_timestamp;
-	struct timeval last_ack_timestamp;
-	struct timeval last_data_timestamp;
-	struct timeval last_get_timestamp;
-};
-
 void connection_scale_up(struct connection* connection);
 void connection_scale_down(struct connection* connection);
 

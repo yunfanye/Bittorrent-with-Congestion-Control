@@ -26,7 +26,8 @@
 static struct packet_record ** last_acked_record;
 static struct sent_packet ** sent_queue_head, ** sent_queue_tail;
 static int * download_id_map;
-static char ** download_chunk_map; 
+static int * up_id_map;
+static uint8_t ** download_chunk_map; 
 static int * upload_id_map;
 static int max_conns;
 static unsigned * upload_last_time;
@@ -86,7 +87,7 @@ int init_tracker(int max) {
 	sent_queue_head = malloc(max * sizeof(struct sent_packet *));
 	download_id_map = malloc(max * sizeof(int));
 	upload_id_map = malloc(max * sizeof(int));
-	download_chunk_map = malloc(max * sizeof(char *));
+	download_chunk_map = malloc(max * sizeof(uint8_t *));
 	download_last_time = malloc(max * sizeof(unsigned));
 	upload_last_time = malloc(max * sizeof(unsigned));
 	if(download_chunk_map == NULL)
@@ -146,12 +147,12 @@ unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 }
 
 /* map peer id to its corresponding chunk hash */
-char * get_chunk_hash(int peer_id) {
+uint8_t * get_chunk_hash(int peer_id) {
 	int index = get_download_index_by_id(peer_id);
 	return index == -1 ? NULL : download_chunk_map[index];
 }
 
-int start_download(int peer_id, char * chunk_hash) {
+int start_download(int peer_id, uint8_t * chunk_hash) {
 	int i;
 	for(i = 0; i < max_conns; i++) {
 		if(download_id_map[i] == ID_NULL) {
@@ -200,10 +201,10 @@ int abort_upload(int peer_id) {
 unsigned get_timeout_seq(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
 	struct sent_packet * head = sent_queue_head[index];
-	unsigned = seq;
+	unsigned seq;
 	if((milli_time() - head -> timestamp) > RTO) {
 		sent_queue_head[index] = head -> next;
-		seq = head -> seq;.
+		seq = head -> seq;
 		free(head);
 		return seq;
 	}

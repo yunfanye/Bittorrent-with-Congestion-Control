@@ -1,6 +1,8 @@
 #ifndef _KEEP_TRACK_H_
 #define _KEEP_TRACK_H_
 
+#include <stdlib.h>
+
 /* received data packet record */
 struct packet_record {
 	unsigned seq;
@@ -20,7 +22,7 @@ struct sent_packet {
  *******************************************************/
 
 /* initialize a new download stream, return 0 on error */
-int start_download(int peer_id, char * chunk_hash);
+int start_download(int peer_id, uint8_t * chunk_hash);
 
 /* close a download stream, may because it is finished or denied */
 int abort_download(int peer_id);
@@ -39,7 +41,7 @@ unsigned track_data_packet(int index, unsigned seq, unsigned len);
 unsigned track_ack_packet(int index, unsigned seq);
 
 /* get_chunk_hash - map peer_id to its corresponding hash */
-char * get_chunk_hash(int peer_id);
+uint8_t * get_chunk_hash(int peer_id);
 
 /* initialize a new upload stream, return 0 on error */
 int start_upload(int peer_id);

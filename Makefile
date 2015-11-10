@@ -3,7 +3,7 @@ CC 		= gcc
 CFLAGS		= -g -Wall -DDEBUG
 LDFLAGS		= -lm
 TESTDEFS	= -DTESTING			# comment this out to disable debugging code
-OBJS		= peer.o bt_parse.o spiffy.o debug.o input_buffer.o chunk.o sha.o
+OBJS		= peer.o bt_parse.o spiffy.o debug.o input_buffer.o chunk.o sha.o keep_track.o network.o util.o file.o congestion_control.o
 MK_CHUNK_OBJS   = make_chunks.o chunk.o sha.o
 
 BINS            = peer make-chunks
@@ -32,8 +32,14 @@ make-chunks: $(MK_CHUNK_OBJS)
 clean:
 	rm -f *.o *~ $(BINS) $(TESTBINS)
 
-network.o: network.c network.h
-	$(CC) $(CFLAGS) -c $^
+# network.o: network.c network.h
+# 	$(CC) $(CFLAGS) -c $^
+
+# util.o: util.c util.h
+# 	$(CC) $(CFLAGS) -c $^
+
+# keep_track.o: keep_track.c keep_track.h
+# 	$(CC) $(CFLAGS) -c $^
 
 bt_parse.c: bt_parse.h
 

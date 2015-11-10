@@ -14,7 +14,7 @@ void print_packet(struct packet* packet){
   printf("seq_number: %u, ack_number: %u\n", seq_number, ack_number);
   unsigned short i = 0;
   char ascii_buf[CHUNK_HASH_SIZE];
-  for(i=20;i<packet_length;i=i+20){
+  for(i=20;i<in_packet_length;i=i+20){
     binary2hex((uint8_t *)(packet+i), SHA1_HASH_SIZE, ascii_buf);
     printf("hash: %s\n", ascii_buf);
   }
@@ -91,7 +91,7 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
       unsigned char chunk_count = *(packet_in->payload);
       unsigned char count_ihave = 0;
       for(i=0;i<chunk_count;i++){
-        char* hash = (char*)(packet_in->payload+CHUNK_NUMBER_AND_PADDING_SIZE+i*SHA1_HASH_SIZE);
+        uint8_t* hash = (uint8_t*)(packet_in->payload+CHUNK_NUMBER_AND_PADDING_SIZE+i*SHA1_HASH_SIZE);
         if(find_chunk(hash)>0){
           memcpy(packet->payload+CHUNK_NUMBER_AND_PADDING_SIZE+count_ihave*SHA1_HASH_SIZE, hash, SHA1_HASH_SIZE);
           count_ihave++;
@@ -179,7 +179,7 @@ int validate_packet(unsigned short magic_number, unsigned char version_number, u
   return 1;
 }
 
-// Unit test of some functions in network.c
+// Unit test of some utility functions
 // void main(){
 //   struct packet* packet = NULL;
 //   packet = make_packet();

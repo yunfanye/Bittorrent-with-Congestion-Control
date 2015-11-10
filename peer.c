@@ -40,8 +40,6 @@ void process_inbound_udp(int sock) {
   struct sockaddr_in from;
   socklen_t fromlen;
   char buf[BUFLEN];
-  unsigned char chunk_count;
-  unsigned char i;
   int recv_bytes;
   
   fromlen = sizeof(from);
@@ -65,14 +63,13 @@ void process_inbound_udp(int sock) {
     return;
   }
 
-  char * filename;
-  char * data_buf = buf + header_length;
+  // char * filename;
+  // char * data_buf = buf + header_length;
   unsigned data_length = in_packet_length - header_length;
   unsigned last_continuous_seq;
   unsigned peer_id = bt_peer_id(sock);
   // char chunk_hash[SHA1_HASH_SIZE];
-  char* chunk_hash = NULL;
-  int hash_correct;
+  uint8_t* chunk_hash = NULL;
   int ack_count;
   struct packet* packet;
   struct Chunk* p_chunk;
@@ -107,54 +104,55 @@ void process_inbound_udp(int sock) {
       break;
     case GET:
     	/* if find chunk != NULL*/
-      chunk_hash = (char*)(incoming_packet+20);
+      chunk_hash = (uint8_t*)(incoming_packet+20);
   		if(find_chunk(chunk_hash)==1){
     	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
-		  	if(start_upload(sock, chunk_hash))    	
-		  		init_cwnd(peer_id);/* init cwnd */
+        printf("GET packet here\n");
+		  	// if(start_upload(sock, chunk_hash))    	
+		  	// 	init_cwnd(peer_id);/* init cwnd */
     	}
     	break;
     case DATA:
     	/* get the corresponding chunk of the peer */
     	chunk_hash = get_chunk_hash(peer_id);
       chunk_id = get_chunk_id(chunk_hash, current_request);
-    	if(hash_correct) {
-		  	/* keep track of the packet */
-		  	last_continuous_seq = keep_track(peer_id, seq_number, data_length);
-        // ignore historical packets
-        if(seq_number<last_continuous_seq+1){
-            return;
-        } 
-        // later packet arrived first, send duplicate ACK
-        else if(seq_number>last_continuous_seq+1){
-            packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
-            send_packet(*packet, sock, (struct sockaddr*)&from);
-            free(packet);
-            return;
-        }
-        // expected packet
-        else{
-            packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq+1, NULL, NULL, NULL);
-            send_packet(*packet, sock, (struct sockaddr*)&from);
-            free(packet);
-            // save data to chunk until chunk is filled
-            // each chunk has 512*1024 bytes, each packet has 1500-16 max bytes data
-            save_data_packet(incoming_packet ,chunk_id);
-            // save the whole chunk if finished
-            save_chunk(chunk_id); // verify chunk is done within the function
-            // Download next chunk if exists
-            chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
-            if(chunk_hash!=NULL){
-              /* add a transmission stream, i.e. associate the stream with peer */
-              if(start_download(peer_id, chunk_hash)){
-                packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
-                send_packet(*packet, sock, (struct sockaddr*)&from);
-                free(packet);
-              }
+      /* keep track of the packet */
+      // last_continuous_seq = keep_track(peer_id, seq_number, data_length);
+      last_continuous_seq = -1;
+      printf("DATA packet DEBUG\n"); 
+      // ignore historical packets
+      if(seq_number<last_continuous_seq+1){
+          return;
+      } 
+      // later packet arrived first, send duplicate ACK
+      else if(seq_number>last_continuous_seq+1){
+          packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
+          send_packet(*packet, sock, (struct sockaddr*)&from);
+          free(packet);
+          return;
+      }
+      // expected packet
+      else{
+          packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq+1, NULL, NULL, NULL);
+          send_packet(*packet, sock, (struct sockaddr*)&from);
+          free(packet);
+          // save data to chunk until chunk is filled
+          // each chunk has 512*1024 bytes, each packet has 1500-16 max bytes data
+          save_data_packet(incoming_packet ,chunk_id);
+          // save the whole chunk if finished
+          save_chunk(chunk_id); // verify chunk is done within the function
+          // Download next chunk if exists
+          chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
+          if(chunk_hash!=NULL){
+            /* add a transmission stream, i.e. associate the stream with peer */
+            if(start_download(peer_id, chunk_hash)){
+              packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
+              send_packet(*packet, sock, (struct sockaddr*)&from);
+              free(packet);
             }
-        }
-    	}
+          }
+      }
     	break;
     case ACK:
     	/* TODO: move pointer */

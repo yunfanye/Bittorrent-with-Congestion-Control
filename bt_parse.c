@@ -20,6 +20,7 @@
 #include <arpa/inet.h>
 #include "bt_parse.h"
 #include "debug.h"
+#include "peer.h"
 
 static const char* const _bt_optstring = "p:c:f:m:i:d:h";
 
@@ -72,7 +73,7 @@ int bt_peer_id(int socket)
 	getpeername(socket, (struct sockaddr *) &peer_addr, &peer_len);
 
   bt_peer_t *p;
-  for (p = config->peers; p != NULL; p = p->next) {
+  for (p = config.peers; p != NULL; p = p->next) {
   	/* port and ip addr match */
     if (p -> addr.sin_port == peer_addr.sin_port &&
     	p -> addr.sin_addr.s_addr == peer_addr.sin_addr.s_addr) {
