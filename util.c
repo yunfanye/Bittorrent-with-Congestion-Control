@@ -223,6 +223,7 @@ void update_connections(int peer_id, struct packet* incoming_packet){
     temp->next = connections;
     connections = temp;
   }
+  print_connections();
 }
 
 // completely delete previous chunk table and create new one
@@ -239,4 +240,26 @@ struct Chunk* update_chunks(struct Chunk* chunks, int* chunk_count, struct packe
     strncpy(chunks[i].hash, temp_hash, 20);
   }
   return chunks;
+}
+
+void print_connection(struct connection* connection){
+  printf("Peer id: %d, Chunks: %d\n", connection->peer_id, connection->chunk_count);
+  struct Chunk* temp_chunk = NULL;
+  int i=0;
+  char hash_buffer[SHA1_HASH_SIZE * 2 + 1];
+  for(i=0;i<connection->chunk_count;i++){
+    memset(hash_buffer, 0, SHA1_HASH_SIZE * 2 + 1);
+    binary2hex(connection->chunks[i].hash, SHA1_HASH_SIZE, hash_buffer);
+    printf("Hash: %s\n", hash_buffer);
+  }
+}
+
+void print_connections(){
+  printf("Begin printing all connections.......................................\n");
+  struct connection* temp = connections;
+  while(temp){
+    print_connection(temp);
+    temp = temp->next;
+  }
+  printf("Finish printing all connections.......................................\n");
 }

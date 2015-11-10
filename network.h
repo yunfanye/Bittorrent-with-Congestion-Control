@@ -10,14 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "sha.h"
-#include "common.h"
-#include "bt_parse.h"
-#include "peer.h"
-#include "util.h"
-#include "spiffy.h"
-#include "congestion_control.h"
-
 #define MAX_LINE_LENGTH 255
 #define CHUNK_HASH_SIZE 41
 #define MAGIC_NUMBER 15441
@@ -37,14 +29,21 @@
 
 #define CHUNK_PER_PACKET 74
 
-
 struct packet{
     char* header;
     char payload[MAX_PAYLOAD_SIZE];
 };
 
+#include "sha.h"
+#include "common.h"
+#include "bt_parse.h"
+#include "peer.h"
+#include "util.h"
+#include "spiffy.h"
+#include "congestion_control.h"
+
 // print utilities
-// void print_packet(struct packet* packet, unsigned short packet_length);
+void print_packet(struct packet* packet);
 
 void fill_header(char* packet_header, unsigned char packet_type, unsigned short packet_length, unsigned int seq_number, unsigned int ack_number);
 

@@ -1,25 +1,25 @@
 #include "network.h"
 
-// void print_packet(char* packet, unsigned short packet_length){
-//   unsigned short magic_number = *(unsigned short*)packet;
-//   unsigned char version_number = *(unsigned char*)(packet+2);
-//   unsigned char packet_type = *(unsigned char*)(packet+3);
-//   unsigned short header_length = *(unsigned short*)(packet+4);
-//   unsigned short in_packet_length = *(unsigned short*)(packet+6);
-//   unsigned int seq_number = *(unsigned int*)(packet+8);
-//   unsigned int ack_number = *(unsigned int*)(packet+12);
-//   printf("Printing packet....................................................................\n");
-//   printf("magic_number: %hu, version_number: %hhu, packet_type: %hhu\n", magic_number, version_number, packet_type);
-//   printf("header_length: %hu, packet_length: %hu\n", header_length, in_packet_length);
-//   printf("seq_number: %u, ack_number: %u\n", seq_number, ack_number);
-//   unsigned short i = 0;
-//   char ascii_buf[CHUNK_HASH_SIZE];
-//   for(i=20;i<packet_length;i=i+20){
-//     binary2hex((uint8_t *)(packet+i), SHA1_HASH_SIZE, ascii_buf);
-//     printf("hash: %s\n", ascii_buf);
-//   }
-//   printf("End printing packet....................................................................\n");
-// }
+void print_packet(struct packet* packet){
+  unsigned short magic_number = *(unsigned short*)packet;
+  unsigned char version_number = *(unsigned char*)(packet+2);
+  unsigned char packet_type = *(unsigned char*)(packet+3);
+  unsigned short header_length = *(unsigned short*)(packet+4);
+  unsigned short in_packet_length = *(unsigned short*)(packet+6);
+  unsigned int seq_number = *(unsigned int*)(packet+8);
+  unsigned int ack_number = *(unsigned int*)(packet+12);
+  printf("Printing packet....................................................................\n");
+  printf("magic_number: %hu, version_number: %hhu, packet_type: %hhu\n", magic_number, version_number, packet_type);
+  printf("header_length: %hu, packet_length: %hu\n", header_length, in_packet_length);
+  printf("seq_number: %u, ack_number: %u\n", seq_number, ack_number);
+  unsigned short i = 0;
+  char ascii_buf[CHUNK_HASH_SIZE];
+  for(i=20;i<packet_length;i=i+20){
+    binary2hex((uint8_t *)(packet+i), SHA1_HASH_SIZE, ascii_buf);
+    printf("hash: %s\n", ascii_buf);
+  }
+  printf("End printing packet....................................................................\n");
+}
 
 
 void fill_header(char* packet_header, unsigned char packet_type, unsigned short packet_length, unsigned int seq_number, unsigned int ack_number){
@@ -178,3 +178,9 @@ int validate_packet(unsigned short magic_number, unsigned char version_number, u
   }
   return 1;
 }
+
+// Unit test of some functions in network.c
+// void main(){
+//   struct packet* packet = NULL;
+//   packet = make_packet();
+// }
