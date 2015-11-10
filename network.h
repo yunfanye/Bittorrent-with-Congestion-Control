@@ -20,7 +20,7 @@
 
 // print utilities
 void print_packet(struct packet* packet);
-void print_incoming_packet(char* packet);
+void print_incoming_packet(struct packet* in_packet);
 
 void fill_header(char** packet_header, unsigned char packet_type, unsigned short packet_length, unsigned int seq_number, unsigned int ack_number);
 

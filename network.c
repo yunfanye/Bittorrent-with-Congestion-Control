@@ -21,7 +21,8 @@ void print_packet(struct packet* packet){
   printf("End printing packet....................................................................\n");
 }
 
-void print_incoming_packet(char* packet){
+void print_incoming_packet(struct packet* in_packet){
+  char* packet = (char*)in_packet;
   unsigned short magic_number = ntohs(*(unsigned short*)(packet));
   unsigned char version_number = *(unsigned char*)(packet+2);
   unsigned char packet_type = *(unsigned char*)(packet+3);
@@ -36,7 +37,7 @@ void print_incoming_packet(char* packet){
   unsigned short i = 0;
   char ascii_buf[CHUNK_HASH_SIZE];
   for(i=20;i<in_packet_length;i=i+20){
-    binary2hex((uint8_t *)(packet+i), SHA1_HASH_SIZE, ascii_buf);
+    binary2hex((uint8_t*)(packet+i), SHA1_HASH_SIZE, ascii_buf);
     printf("hash: %s\n", ascii_buf);
   }
   printf("End printing packet....................................................................\n");
@@ -109,12 +110,13 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
       return packets;
     case IHAVE:
       packet = (struct packet*)malloc(sizeof(struct packet));
-      unsigned char chunk_count = *(packet_in->payload);
+      unsigned char chunk_count = *((char*)packet_in+16);
       unsigned char count_ihave = 0;
+
       for(i=0;i<chunk_count;i++){
-        uint8_t* hash = (uint8_t*)(packet_in->payload+CHUNK_NUMBER_AND_PADDING_SIZE+i*SHA1_HASH_SIZE);
+        uint8_t* hash = (uint8_t*)((char*)packet_in+16+CHUNK_NUMBER_AND_PADDING_SIZE+i*SHA1_HASH_SIZE);
         if(find_chunk(hash)>0){
-          memcpy(packet->payload+CHUNK_NUMBER_AND_PADDING_SIZE+count_ihave*SHA1_HASH_SIZE, hash, SHA1_HASH_SIZE);
+          memcpy((char*)packet_in+16+CHUNK_NUMBER_AND_PADDING_SIZE+count_ihave*SHA1_HASH_SIZE, hash, SHA1_HASH_SIZE);
           count_ihave++;
         }
       }
@@ -122,19 +124,29 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
         free(packet);
         packet = NULL;
       }
-      fill_header(&packet->header, IHAVE, count_ihave*SHA1_HASH_SIZE+HEADER_LENGTH+CHUNK_NUMBER_AND_PADDING_SIZE, 0, 0);
-      *(packet->payload) = count_ihave;
+      else{
+        fill_header(&(packet->header), IHAVE, count_ihave*SHA1_HASH_SIZE+HEADER_LENGTH+CHUNK_NUMBER_AND_PADDING_SIZE, 0, 0);
+        // *(packet->payload) = count_ihave;
+        memcpy(packet->payload, &count_ihave, 1);
+      }
+      break;
     case GET:
       packet = (struct packet*)malloc(sizeof(struct packet));
       fill_header(&packet->header, GET, SHA1_HASH_SIZE+HEADER_LENGTH, 0, 0);
       memcpy(packet->payload, p_chunk->hash, SHA1_HASH_SIZE);
+      break;
     case DATA:
       packet = (struct packet*)malloc(sizeof(struct packet));
       fill_header(&packet->header, DATA, data_size+HEADER_LENGTH, seq_number, 0);
       memcpy(packet->payload, data, data_size);
+      break;
     case ACK:
       packet = (struct packet*)malloc(sizeof(struct packet));
       fill_header(&packet->header, ACK, HEADER_LENGTH, 0, ack_number);
+      break;
+    default:
+      printf("Should not happen in make_packet\n");
+      break;
   }
   return packet;
 }
