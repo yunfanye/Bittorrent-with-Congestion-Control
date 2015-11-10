@@ -68,7 +68,7 @@ void process_inbound_udp(int sock) {
   // char * data_buf = buf + header_length;
   unsigned data_length = in_packet_length - header_length;
   unsigned last_continuous_seq;
-  unsigned peer_id = bt_peer_id(sock);
+  unsigned peer_id = bt_peer_id(from);
   uint8_t* chunk_hash = NULL;
   int ack_count;
   struct packet* packet;
@@ -90,19 +90,28 @@ void process_inbound_udp(int sock) {
       break;
     case IHAVE:
     	printf("GET IHAVE\n");
+    	/* TODO conversion */
     	//print_packet(incoming_packet);
       update_connections(peer_id, incoming_packet);
+      printf("After update connect: peer id: %d\n", peer_id);
       if(current_request!=NULL){
         // TODO: may need to update timestamp for the new current_request
         // pick a chunk and mark the chunk as RECEIVING
+        printf("before picking chunk\n");
         chunk_hash = pick_a_chunk(incoming_packet, &p_chunk);
+        printf("picked a chunk: %p\n", chunk_hash);
         if(chunk_hash!=NULL){
           /* add a transmission stream, i.e. associate the stream with peer */
+          printf("start downloading\n");
           if(start_download(peer_id, chunk_hash)){
+          	printf("sent GET packet\n");
             packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
+            /* Send GET */
             send_packet(*packet, sock, (struct sockaddr*)&from);
+            /* TODO: fix memory leakage */
             free(packet);
           }
+          printf("end downloading\n");
         }
       }
       break;

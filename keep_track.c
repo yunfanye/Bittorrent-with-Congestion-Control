@@ -44,7 +44,7 @@ void infer_RTT(unsigned timestamp);
 
 int finish_download(int index);
 int get_download_index_by_id(int id);
-int add_record(struct packet_record * root, unsigned seq, unsigned len);
+struct packet_record * add_record(struct packet_record * root, unsigned seq, unsigned len);
 
 
 /* clean timeout connection. abort connections that have no interaction for
@@ -103,6 +103,7 @@ int init_tracker(int max) {
  * inform user if transmission is completed */
 unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 	int index = get_download_index_by_id(peer_id);
+	printf("download index: %d\n", index);
 	int last_continous_seq;	
 	struct packet_record * root, * node, * tmp;
 	
@@ -114,9 +115,9 @@ unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 	}
 	
 	root = last_acked_record[index];
-	
+	printf("to add record, root: %p\n", root);
 	/* add new record to the tracker */
-	add_record(root, seq, len);
+	root = add_record(root, seq, len);
 	/* find the largest continous seq */
 	node = root;
 	while(node -> next != NULL && 
@@ -130,6 +131,7 @@ unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 		root = root -> next;
 		free(tmp);
 	}
+	printf("to return\n");
 	last_continous_seq = root -> seq;
 	last_acked_record[index] = root;
 	
@@ -160,6 +162,7 @@ int start_download(int peer_id, uint8_t * chunk_hash) {
 			download_last_time[i] = milli_time();
 			memcpy(download_chunk_map[i], chunk_hash, SHA1_HASH_SIZE);
 			/* seq will start at 1, so add a root node to indicate this fact */
+			printf("to keep track when starting download\n");
 			track_data_packet(peer_id, 0, 1);
 			return 1;
 		}
@@ -299,7 +302,8 @@ int get_upload_index_by_id(int id) {
 	return -1;
 }
 
-int add_record(struct packet_record * root, unsigned seq, unsigned len) {
+struct packet_record * add_record(struct packet_record * root, unsigned seq, unsigned len) {
+	struct packet_record * saved = root;
 	struct packet_record * new_node;
 	
 	if(root == NULL) {
@@ -307,7 +311,7 @@ int add_record(struct packet_record * root, unsigned seq, unsigned len) {
 		root -> next = NULL;
 		root -> seq = seq;
 		root -> length = len;
-		return 1;
+		return root;
 	}
 	/* 1 -> 1000 (root) -> seq -> 3000*/
 	while(root -> next != NULL && root -> next -> seq < seq)
@@ -317,5 +321,5 @@ int add_record(struct packet_record * root, unsigned seq, unsigned len) {
 	new_node -> length = len;
 	new_node -> next = root -> next;
 	root -> next =  new_node;
-	return 1;
+	return saved;
 }
