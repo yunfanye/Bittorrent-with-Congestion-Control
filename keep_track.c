@@ -26,7 +26,6 @@
 static struct packet_record ** last_acked_record;
 static struct sent_packet ** sent_queue_head, ** sent_queue_tail;
 static int * download_id_map;
-static int * up_id_map;
 static uint8_t ** download_chunk_map; 
 static int * upload_id_map;
 static int max_conns;
@@ -95,7 +94,7 @@ int init_tracker(int max) {
 	memset(sent_queue_head, 0, max * sizeof(struct sent_packet *));
 	memset(last_acked_record, 0, max * sizeof(struct packet_record *));
 	memset(download_id_map, 0, max * sizeof(int));
-	memset(up_id_map, 0, max * sizeof(int));
+	memset(upload_id_map, 0, max * sizeof(int));
 	return 1;
 }
 

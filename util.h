@@ -7,6 +7,7 @@
 #include "peer.h"
 #include "file.h"
 #include <sys/time.h>
+#include <assert.h>
 
 int find_chunk(uint8_t* hash);
 struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename);
