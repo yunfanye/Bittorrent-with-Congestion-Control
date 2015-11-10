@@ -1,13 +1,13 @@
 #include "network.h"
 
 void print_packet(struct packet* packet){
-  unsigned short magic_number = *(unsigned short*)packet;
-  unsigned char version_number = *(unsigned char*)(packet+2);
-  unsigned char packet_type = *(unsigned char*)(packet+3);
-  unsigned short header_length = *(unsigned short*)(packet+4);
-  unsigned short in_packet_length = *(unsigned short*)(packet+6);
-  unsigned int seq_number = *(unsigned int*)(packet+8);
-  unsigned int ack_number = *(unsigned int*)(packet+12);
+  unsigned short magic_number = ntohs(*(unsigned short*)(packet->header));
+  unsigned char version_number = *(unsigned char*)(packet->header+2);
+  unsigned char packet_type = *(unsigned char*)(packet->header+3);
+  unsigned short header_length = ntohs(*(unsigned short*)(packet->header+4));
+  unsigned short in_packet_length = ntohs(*(unsigned short*)(packet->header+6));
+  unsigned int seq_number = ntohl(*(unsigned int*)(packet->header+8));
+  unsigned int ack_number = ntohl(*(unsigned int*)(packet->header+12));
   printf("Printing packet....................................................................\n");
   printf("magic_number: %hu, version_number: %hhu, packet_type: %hhu\n", magic_number, version_number, packet_type);
   printf("header_length: %hu, packet_length: %hu\n", header_length, in_packet_length);
@@ -27,13 +27,13 @@ void fill_header(char** packet_header, unsigned char packet_type, unsigned short
   unsigned short magic_number = MAGIC_NUMBER;
   unsigned char version_number = VERSION_NUMBER;
   short header_length = HEADER_LENGTH;
-  *(unsigned short*)packet_header = htons(magic_number);
-  *(unsigned char*)(packet_header+2) = version_number;
-  *(unsigned char*)(packet_header+3) = packet_type;
-  *(unsigned short*)(packet_header+4) = htons(header_length);
-  *(unsigned short*)(packet_header+6) = htons(packet_length);
-  *(unsigned int*)(packet_header+8) = htonl(seq_number);
-  *(unsigned int*)(packet_header+12) = htonl(ack_number);
+  *(unsigned short*)*packet_header = htons(magic_number);
+  *(unsigned char*)(*packet_header+2) = version_number;
+  *(unsigned char*)(*packet_header+3) = packet_type;
+  *(unsigned short*)(*packet_header+4) = htons(header_length);
+  *(unsigned short*)(*packet_header+6) = htons(packet_length);
+  *(unsigned int*)(*packet_header+8) = htonl(seq_number);
+  *(unsigned int*)(*packet_header+12) = htonl(ack_number);
 }
 
 // Besides passing in type, also pass some necessary fields as parameters
@@ -123,9 +123,10 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
 
 // send one packet
 void send_packet(struct packet packet, int socket, struct sockaddr* dst_addr){
-  printf("send_packet\n");
-  printf("send_packet, %d\n", *(unsigned short*)(packet.header+6));
-  spiffy_sendto(socket, &packet, *(unsigned short*)(packet.header+6), 0, dst_addr, sizeof(*dst_addr));
+  char buf[MAX_PACKET_SIZE];
+  memcpy(buf, packet.header, 16);
+  memcpy(buf + 16, packet.payload, MAX_PAYLOAD_SIZE);
+  spiffy_sendto(socket, buf, ntohs(*(unsigned short*)(packet.header+6)), 0, dst_addr, sizeof(*dst_addr));
   printf("send_packet\n");
 }
 
@@ -143,7 +144,8 @@ void whohas_flooding(struct Request* request){
   int packet_count = 0;
   struct packet* packets = make_packet(WHOHAS, NULL, NULL, -1, 0, 0, NULL, &packet_count, request);
   printf("%d\n", packet_count);
-  for(int i=0;i<packet_count;i++){
+  int i;
+  for(i=0;i<packet_count;i++){
     print_packet(&packets[i]);
   }
   printf("asdasd\n");
