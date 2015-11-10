@@ -90,6 +90,7 @@ void process_inbound_udp(int sock) {
       }
       break;
     case IHAVE:
+      update_connections(peer_id, incoming_packet);
       if(current_request!=NULL){
         // TODO: may need to update timestamp for the new current_request
         // pick a chunk and mark the chunk as RECEIVING
@@ -143,10 +144,15 @@ void process_inbound_udp(int sock) {
             // save the whole chunk if finished
             save_chunk(chunk_id); // verify chunk is done within the function
             // Download next chunk if exists
-            // TODO: when receive IHAVE packet, need to record/update existing peers'
-            // have chunk table
-            
-            // TODO: receive_new_chunk();
+            chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
+            if(chunk_hash!=NULL){
+              /* add a transmission stream, i.e. associate the stream with peer */
+              if(start_download(peer_id, chunk_hash)){
+                packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
+                send_packet(*packet, sock, (struct sockaddr*)&from);
+                free(packet);
+              }
+            }
         }
     	}
     	break;
@@ -216,6 +222,7 @@ void peer_run(bt_config_t *config) {
   init_tracker(config->max_conn);
   init_controller(config->max_conn);
   current_request = NULL;
+  connections = NULL;
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   

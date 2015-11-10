@@ -19,6 +19,13 @@
 
 
 struct connection{
+	// used fields
+	int peer_id;
+	int chunk_count;
+	struct Chunk* chunks;
+	struct connection* next;
+
+	// unused fields
 	int id;
 	struct sockaddr_in addr;
 
@@ -31,8 +38,6 @@ struct connection{
 	int state;
 
 	int RTT;
-
-	struct connection* next;
 
 	struct timeval CONGESTION_AVOIDANCE_timestamp;
 	struct timeval last_ack_timestamp;

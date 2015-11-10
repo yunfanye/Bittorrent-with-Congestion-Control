@@ -17,6 +17,7 @@
 #include "chunk.h"
 #include "network.h"
 #include "keep_track.h"
+#include "connection.h"
 
 
 
@@ -27,6 +28,7 @@ int sock;
 bt_config_t config;
 struct Request* has_chunk_table; // used to record has_chunk number and chunks
 struct Request* current_request;
+struct connection* connections;
 
 void peer_run(bt_config_t *config);
 int main(int argc, char **argv);

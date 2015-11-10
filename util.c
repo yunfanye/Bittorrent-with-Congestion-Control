@@ -55,6 +55,9 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
     else{
       p_chunk[i].state = OWNED; 
     }
+    p_chunk[i].received_seq_number = 0;
+    p_chunk[i].received_byte_number = 0;
+    p_chunk[i].data = NULL;
   }
   fclose(f);
 
@@ -88,6 +91,37 @@ char* pick_a_chunk(struct packet* packet, struct Chunk** chunk_pointer){
   }
   *chunk_pointer = NULL;
   return NULL;
+}
+
+char* pick_a_new_chunk(int peer_id, struct Chunk** chunk_pointer){
+  int i=0;
+  struct Chunk* p_chunk=current_request->chunks;
+  for(i=0;i<current_request->chunk_number;i++){
+    if(p_chunk[i].state==NOT_STARTED && peer_contain_chunk(peer_id, p_chunk[i].hash)==1){
+      p_chunk[i].state = RECEIVING;
+      *chunk_pointer = p_chunk[i];
+      return p_chunk[i].hash;
+    }
+  }
+  *chunk_pointer = NULL;
+  return NULL;
+}
+
+int peer_contain_chunk(int peer_id, char* hash){
+  struct connection* temp = connections;
+  int i=0;
+  char* packet_chunk;
+  while(temp){
+    if(temp->id==peer_id){
+      for(i=0;i<temp->chunk_count;i++){
+        packet_chunk = (char*)(packet+20+20*i);
+        if(memcmp(hash, packet_chunk, SHA1_HASH_SIZE) == 0){
+          return 1;
+        }
+      }
+    }
+  }
+  return -1;
 }
 
 int packet_contain_chunk(struct packet* packet, char* hash){
@@ -153,4 +187,56 @@ int all_chunk_finished(){
     }
   }
   return 1;
+}
+
+int connections_contain_peer_id(int peer_id){
+  struct connection* temp = connections;
+  while(temp){
+
+  }
+  return -1;
+}
+
+void update_connections(int peer_id, struct packet* incoming_packet){
+  if(connections==NULL){
+    connections = (struct connection*)malloc(sizeof(struct connection));
+    connections->id = peer_id;
+    connections->chunks = NULL;
+    connections->chunks = update_chunks(connections->chunks, &(connections->chunk_count), incoming_packet);
+    connections->next = NULL;
+  }
+  else{
+    struct connection* temp = connections;
+    while(temp){
+      if(temp->id==peer_id){
+        // update peer's chunk table
+        temp->chunks = update_chunks(temp->chunks, &(temp->chunk_count), incoming_packet);
+        return;
+      }
+      temp = temp->next;
+    }
+    // connections does not contain peer
+    struct connection* temp = (struct connection*)malloc(sizeof(struct connection));
+    temp->id = peer_id;
+    temp->chunks = NULL;
+    temp->chunks = update_chunks(temp->chunks, &(temp->chunk_count), incoming_packet);
+    temp->next = connections;
+    connections = temp;
+  }
+}
+
+// completely delete previous chunk table and create new one
+struct Chunk* update_chunks(struct Chunk* chunks, int* chunk_count, struct packet* packet){
+  unsigned short packet_length = *(unsigned short*)((char*)in_packet+6);
+  int i=0;
+  char* temp_hash = NULL;
+  struct Chunk* temp_chunk = NULL;
+  free(chunks);
+  *chunk_count = (packet_length-20)/20;
+  chunks = (struct Chunk*)malloc(sizeof(struct Chunk)*chunk_count);
+  for(i=0;i<*chunk_count;i++){
+    temp_hash = (char*)packet + 20 + i * 20;
+    strncpy(chunks[i].hash, temp_hash, 20);
+  }
+  return chunks;
 }
