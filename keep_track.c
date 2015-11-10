@@ -3,6 +3,7 @@
 
 #include "keep_track.h"
 #include "sha.h"
+#include "util.h"
 #include <time.h>
 
 #define ABS(x) ((x)>=(0)?(x)(-x))
@@ -51,7 +52,7 @@ int init_tracker(int max) {
 	return 1;
 }
 
-/* keep record of the new data packet of seq and len
+/* Receive data: keep record of the new data packet of seq and len
  * and return the last continous seq number 
  * inform user if transmission is completed */
 unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
@@ -149,7 +150,7 @@ unsigned get_timeout_seq(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
 	struct sent_packet * head = sent_queue_head[index];
 	unsigned = seq;
-	if(time() - head -> timestamp > RTO) {
+	if(milli_time() - head -> timestamp > RTO) {
 		sent_queue_head[index] = head -> next;
 		seq = head -> seq;.
 		free(head);
@@ -165,7 +166,7 @@ int wait_ack(int peer_id, unsigned seq) {
 	struct sent_packet * tail = sent_queue_tail[index];
 	struct sent_packet * new_node = malloc(sizeof(struct sent_packet));
 	new_node -> seq = seq;
-	new_node -> timestamp = time(); /* get current timestamp */
+	new_node -> timestamp = milli_time(); /* get current timestamp */
 	new_node -> next = NULL;
 	if(tail == NULL) {
 		sent_queue_tail[index] = new_node;
@@ -208,7 +209,7 @@ int receive_ack(int peer_id, unsigned seq) {
 
 /* estimate the RTT and network deviation */
 void infer_RTT(unsigned timestamp) {
-	unsigned new_RTT = timestamp - time();
+	unsigned new_RTT = timestamp - milli_time();
 	unsigned new_dev;
 	RTT = ALPHA * RTT + (1 - ALPHA) * new_RTT;
 	new_dev = ABS(new_RTT - RTT);
