@@ -49,19 +49,34 @@ int add_record(struct packet_record * root, unsigned seq, unsigned len);
 
 /* clean timeout connection. abort connections that have no interaction for
  * a long time, guessing that peer has trouble */
-void clean_timeout() {
+int clean_download_timeout() {
 	int i;
 	unsigned long now_time = milli_time();
+	int id;
+	for(i = 0; i < max_conns; i++) {
+		if(download_id_map[i] != ID_NULL && (now_time - download_last_time[i]) > 
+			ABORT_COEFF * RTO) {
+			id = download_id_map[i];
+			abort_download(download_id_map[i]);		
+			return id;
+		}
+	}
+	return ID_NULL;
+}
+
+int clean_upload_timeout() {
+	int i;
+	unsigned long now_time = milli_time();
+	int id;
 	for(i = 0; i < max_conns; i++) {
 		if(upload_id_map[i] != ID_NULL && (now_time - upload_last_time[i]) > 
 			ABORT_COEFF * RTO) {
+			id = upload_id_map[i];
 			abort_upload(upload_id_map[i]);
-		}
-		if(download_id_map[i] != ID_NULL && (now_time - download_last_time[i]) > 
-			ABORT_COEFF * RTO) {
-			abort_download(download_id_map[i]);
+			return id;
 		}
 	}
+	return ID_NULL;
 }
 
 /* init the stream tracker */
