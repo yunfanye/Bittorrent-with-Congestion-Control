@@ -116,7 +116,7 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
       for(i=0;i<chunk_count;i++){
         uint8_t* hash = (uint8_t*)((char*)packet_in+16+CHUNK_NUMBER_AND_PADDING_SIZE+i*SHA1_HASH_SIZE);
         if(find_chunk(hash)>0){
-          memcpy((char*)packet_in+16+CHUNK_NUMBER_AND_PADDING_SIZE+count_ihave*SHA1_HASH_SIZE, hash, SHA1_HASH_SIZE);
+          memcpy(packet->payload+CHUNK_NUMBER_AND_PADDING_SIZE+count_ihave*SHA1_HASH_SIZE, hash, SHA1_HASH_SIZE);
           count_ihave++;
         }
       }
