@@ -16,6 +16,7 @@
 #include "peer.h"
 #include "util.h"
 #include "spiffy.h"
+#include "congestion_control.h"
 
 #define MAX_LINE_LENGTH 255
 #define CHUNK_HASH_SIZE 41
@@ -51,5 +52,6 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
 void send_packet(struct packet packet, int socket, struct sockaddr* dst_addr);
 void send_whohas_packet_to_all(struct packet* packets, int packet_count, int socket, struct sockaddr* dst_addr);
 void whohas_flooding(struct Request* request);
+int validate_packet(unsigned short magic_number, unsigned char version_number, unsigned char packet_type);
 
 #endif

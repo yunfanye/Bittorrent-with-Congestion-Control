@@ -58,7 +58,13 @@ void process_inbound_udp(int sock) {
   unsigned short in_packet_length = *(unsigned short*)(buf+6);
   unsigned int seq_number = *(unsigned int*)(buf+8);
   unsigned int ack_number = *(unsigned int*)(buf+12);
-  
+  struct packet* incoming_packet = (struct packet*)buf;
+  // validate packet
+  if(validate_packet(magic_number, version_number, packet_type)<0){
+    printf("Invalid packet\n");
+    return;
+  }
+
   char * filename;
   char * data_buf = buf + header_length;
   unsigned data_length = in_packet_length - header_length;
@@ -67,10 +73,7 @@ void process_inbound_udp(int sock) {
   char chunk_hash[SHA1_HASH_SIZE];
   int hash_correct;
   int ack_count;
-  
-  /* check the format of the packet, i.e. magic number 15441 and version 1 */
-  if(magic_number != 15441 || version_number != 1)
-  	return;
+  struct packet* packet;
   
   /* should handle DATA lost and GET lost. If WHOHAS is guaranteed to get 
    * an IHAVE reponse, handle it as well. Use a queue with timestamp to 
@@ -78,7 +81,7 @@ void process_inbound_udp(int sock) {
   switch(packet_type){
     case WHOHAS:
       // reply if it has any of the packets that the WHOHAS packet inquires
-      struct packet* packet = make_packet(IHAVE, NULL, NULL, 0, 0, 0, packet_in, NULL, NULL);
+      packet = make_packet(IHAVE, NULL, NULL, 0, 0, 0, packet_in, NULL, NULL);
       if(packet!=NULL){
         send_packet(packet, sock, (struct sockaddr*)&from);
         free(packet);
@@ -110,6 +113,7 @@ void process_inbound_udp(int sock) {
 		  	/* get filename from hash table */
 		  	filename = find_chunk(chunk_hash).filename;
 		  	/* check if the hash is correct, TODO: how to compute hash? */
+
 		  	hash_correct = !strcmp(compute_hash(data_buf, data_length), chunk_hash);
 		  	/* get a new data packet, write the data to storage
 		  	 * seq_number starts with 1 */
@@ -119,9 +123,25 @@ void process_inbound_udp(int sock) {
     	if(hash_correct) {
 		  	/* keep track of the packet */
 		  	last_continuous_seq = keep_track(peer_id, seq_number, data_length);
-        struct packet* packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
-        send_packet(packet, sock, (struct sockaddr*)&from);
-        free(packet);
+        // ignore historical packets
+        if(seq_number<last_continuous_seq+1)){
+            return;
+        } 
+        // later packet arrived first, send duplicate ACK
+        else if(seq_number>last_continuous_seq+1)){
+            packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
+            send_packet(packet, sock, (struct sockaddr*)&from);
+            free(packet);
+            return;
+        }
+        // expected packet
+        else{
+            packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq+1, NULL, NULL, NULL);
+            send_packet(packet, sock, (struct sockaddr*)&from);
+            free(packet);
+            // TODO:save_data_packet, save_chunk(if chunk is separated into multiple packets)
+            // Download next chunk if exists
+        }
     	}
     	break;
     case ACK:
@@ -143,17 +163,9 @@ void process_inbound_udp(int sock) {
 void process_get(char *chunkfile, char *outputfile){
   struct has_chunk* get_chunks;
   get_chunks = NULL;
-  struct Request* new_get_request = parse_has_get_chunk_file(chunkfile, outputfile);
-  bt_peer_t* p_peer = config.peers;
-  while(p_peer!=NULL){
-    if(p_peer->id != config.identity){
-      send_whohas_ihave_packet((struct sockaddr*)&p_peer->addr, WHOHAS, get_chunks);
-    }
-    p_peer = p_peer->next;
-  }
+  current_request = parse_has_get_chunk_file(chunkfile, outputfile);
+  whohas_flooding(current_request);
 }
-
-
 
 void handle_user_input(char *line, void *cbdata) {
   char chunkf[128], outf[128];
@@ -197,10 +209,7 @@ void peer_run(bt_config_t *config) {
   /* init tracker and controller */
   init_tracker(config->max_conn);
   init_controller(config->max_conn);
-  
-  sender_connections = NULL;
-  reader_connections = NULL;
-
+  current_request = NULL;
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   
@@ -220,18 +229,15 @@ void peer_run(bt_config_t *config) {
         process_user_input(STDIN_FILENO, userbuf, handle_user_input, "Currently unused");
       }
     }
-    // in each loop, check all connections and see if timeout happens for each connection
-    // check senders timeout
-    struct connection* p_connection = sender_connections;
-    while(p_connection != NULL){
-        provider_control_by_timeout(temp);
-        p_connection = p_connection->next;
+
+    if(get_time_diff(&last_flood_whohas_time) > WHOHAS_FLOOD_INTERVAL_MS){
+        whohas_flooding(current_request);
+        gettimeofday(&last_flood_whohas_time, NULL);
     }
-    // check readers timeout
-    p_connection = reader_connections;
-    while(temp != NULL){
-        receiver_control_by_timeout(temp);
-        p_connection = p_connection->next;
+    // TODO: 
+    if(all_chunk_finished(current_request)){
+      free(current_request);
+      current_request = NULL;
     }
   }
 }

@@ -149,3 +149,32 @@ void whohas_flooding(struct Request* request){
   free(packets);
   return;
 }
+
+void send_packet_with_window_constraint(int peer_id, struct packet packet, int socket, struct sockaddr* dst_addr){
+  int window_size = get_cwnd_size(peer_id);
+  int pending_acks = provider_connection->last_packet_sent - provider_connection->last_packet_acked;
+  // if sending window is full, return
+  if(pending_acks == window_size){
+    return;
+  }
+  if(pending_acks > window_size){
+    printf("ERROR: Should not happen, window size smaller than pending acks\n");
+    return;
+  }
+  if(provider_connection->last_packet_sent == CHUNK_DATA_NUM){
+    return;
+  }
+}
+
+int validate_packet(unsigned short magic_number, unsigned char version_number, unsigned char packet_type){
+  if(magic_number!=MAGIC_NUMBER){
+    return -1;
+  }
+  if(version_number!=VERSION_NUMBER){
+    return -1;
+  }
+  if(packet_type < 0||packet_type>5){
+    return -1;
+  }
+  return 1;
+}
