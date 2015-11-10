@@ -68,7 +68,6 @@ void process_inbound_udp(int sock) {
   unsigned data_length = in_packet_length - header_length;
   unsigned last_continuous_seq;
   unsigned peer_id = bt_peer_id(sock);
-  // char chunk_hash[SHA1_HASH_SIZE];
   uint8_t* chunk_hash = NULL;
   int ack_count;
   struct packet* packet;
@@ -102,15 +101,15 @@ void process_inbound_udp(int sock) {
         }
       }
       break;
-    case GET:
-    	/* if find chunk != NULL*/
-      chunk_hash = (uint8_t*)(incoming_packet+20);
+    case GET:    	
+      chunk_hash = (uint8_t*)(incoming_packet + header_length);
+      /* if find chunk != NULL*/
   		if(find_chunk(chunk_hash)==1){
     	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
         printf("GET packet here\n");
-		  	// if(start_upload(sock, chunk_hash))    	
-		  	// 	init_cwnd(peer_id);/* init cwnd */
+		    if(start_upload(peer_id))    	
+		  	 	init_cwnd(peer_id);/* init cwnd */
     	}
     	break;
     case DATA:
@@ -118,8 +117,7 @@ void process_inbound_udp(int sock) {
     	chunk_hash = get_chunk_hash(peer_id);
       chunk_id = get_chunk_id(chunk_hash, current_request);
       /* keep track of the packet */
-      // last_continuous_seq = keep_track(peer_id, seq_number, data_length);
-      last_continuous_seq = -1;
+      last_continuous_seq = track_data_packet(peer_id, seq_number, data_length);
       printf("DATA packet DEBUG\n"); 
       // ignore historical packets
       if(seq_number<last_continuous_seq+1){
@@ -171,8 +169,8 @@ void process_inbound_udp(int sock) {
 
 
 void process_get(char *chunkfile, char *outputfile){
-  struct has_chunk* get_chunks;
-  get_chunks = NULL;
+  //struct has_chunk* get_chunks;
+  //get_chunks = NULL;
   current_request = parse_has_get_chunk_file(chunkfile, outputfile);
   whohas_flooding(current_request);
 }
