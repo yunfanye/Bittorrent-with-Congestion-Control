@@ -21,22 +21,22 @@ void print_packet(struct packet* packet){
   printf("End printing packet....................................................................\n");
 }
 
-void print_incoming_packet(struct packet* packet){
-  unsigned short magic_number = ntohs(*(unsigned short*)(packet->header));
-  unsigned char version_number = *(unsigned char*)(packet->header+2);
-  unsigned char packet_type = *(unsigned char*)((packet->header)+3);
-  unsigned short header_length = ntohs(*(unsigned short*)((packet->header)+4));
-  unsigned short in_packet_length = ntohs(*(unsigned short*)((packet->header)+6));
-  unsigned int seq_number = ntohl(*(unsigned int*)((packet->header)+8));
-  unsigned int ack_number = ntohl(*(unsigned int*)((packet->header)+12));
+void print_incoming_packet(char* packet){
+  unsigned short magic_number = ntohs(*(unsigned short*)(packet));
+  unsigned char version_number = *(unsigned char*)(packet+2);
+  unsigned char packet_type = *(unsigned char*)(packet+3);
+  unsigned short header_length = ntohs(*(unsigned short*)(packet+4));
+  unsigned short in_packet_length = ntohs(*(unsigned short*)(packet+6));
+  unsigned int seq_number = ntohl(*(unsigned int*)(packet+8));
+  unsigned int ack_number = ntohl(*(unsigned int*)(packet+12));
   printf("Printing packet....................................................................\n");
   printf("magic_number: %hu, version_number: %hhu, packet_type: %hhu\n", magic_number, version_number, packet_type);
   printf("header_length: %hu, packet_length: %hu\n", header_length, in_packet_length);
   printf("seq_number: %u, ack_number: %u\n", seq_number, ack_number);
   unsigned short i = 0;
   char ascii_buf[CHUNK_HASH_SIZE];
-  for(i=4;i<in_packet_length-header_length;i=i+20){
-    binary2hex((uint8_t *)(&(packet->payload[i])), SHA1_HASH_SIZE, ascii_buf);
+  for(i=20;i<in_packet_length;i=i+20){
+    binary2hex((uint8_t *)(packet+i), SHA1_HASH_SIZE, ascii_buf);
     printf("hash: %s\n", ascii_buf);
   }
   printf("End printing packet....................................................................\n");
@@ -159,7 +159,6 @@ void send_whohas_packet_to_all(struct packet* packets, int packet_count, int soc
 void whohas_flooding(struct Request* request){
   int packet_count = 0;
   struct packet* packets = make_packet(WHOHAS, NULL, NULL, -1, 0, 0, NULL, &packet_count, request);
-  for(int i=0;i<packet_count;i++){
   int i;
   for(i=0;i<packet_count;i++){
     print_packet(&packets[i]);
@@ -175,6 +174,9 @@ void whohas_flooding(struct Request* request){
           peer = peer->next;
         }
     }
+  }
+  for(i=0;i<packet_count;i++){
+    free(packets[i].header);
   }
   free(packets);
   return;

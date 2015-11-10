@@ -57,6 +57,7 @@ void process_inbound_udp(int sock) {
   unsigned int seq_number =ntohl(*(unsigned int*)(buf+8));
   unsigned int ack_number = ntohl(*(unsigned int*)(buf+12));
   struct packet* incoming_packet = (struct packet*)buf;
+  print_incoming_packet(buf);
   // validate packet
   if(validate_packet(magic_number, version_number, packet_type)<0){
     printf("Invalid packet\n");
@@ -78,6 +79,7 @@ void process_inbound_udp(int sock) {
    * calculate when timeout */
   switch(packet_type){
     case WHOHAS:
+    printf("receive WHOHAS\n");
       // reply if it has any of the packets that the WHOHAS packet inquires
       print_packet(incoming_packet);
       packet = make_packet(IHAVE, NULL, NULL, 0, 0, 0, incoming_packet, NULL, NULL);
@@ -226,13 +228,15 @@ void peer_run(bt_config_t *config) {
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   print_request(has_chunk_table);
+  printf("before while loop\n");
   while (1) {
     int nfds;
+    printf("in while loop\n");
     FD_SET(STDIN_FILENO, &readfds);
     FD_SET(sock, &readfds);
-    
+    printf("in2 while loop\n");
     nfds = select(sock+1, &readfds, NULL, NULL, NULL);
-    
+    printf("%d\n", nfds);
     if (nfds > 0) {
       if (FD_ISSET(sock, &readfds)) {
         process_inbound_udp(sock);

@@ -63,7 +63,6 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
   struct Request* request = (struct Request*)malloc(sizeof(struct Request));
   request->filename = NULL;
   request->chunk_number = chunk_count;
-  printf("%s, %d\n", chunk_file, request->chunk_number);
   request->chunks = (struct Chunk*)malloc(sizeof(struct Chunk) * chunk_count);
   p_chunk = request->chunks;
   i = 0;
@@ -147,7 +146,7 @@ int peer_contain_chunk(int peer_id, uint8_t* hash){
 }
 
 int packet_contain_chunk(struct packet* packet, uint8_t* hash){
-  unsigned char chunk_count = *(unsigned char*)(packet+16);
+  unsigned char chunk_count = *(unsigned char*)((char*)packet+16);
   unsigned char i = 0;
   char* packet_chunk = NULL;
   for(i=0;i<chunk_count;i++){
@@ -249,6 +248,7 @@ void update_connections(int peer_id, struct packet* incoming_packet){
 // completely delete previous chunk table and create new one
 struct Chunk* update_chunks(struct Chunk* chunks, int* chunk_count, struct packet* packet){
   unsigned short packet_length = ntohs(*(unsigned short*)((char*)packet+6));
+  printf("update_chunks: %hu\n", packet_length);
   int i=0;
   char* temp_hash = NULL;
   free(chunks);
