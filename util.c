@@ -189,7 +189,7 @@ void save_data_packet(struct packet* in_packet, int chunk_id){
   memcpy(chunk->data + chunk->received_byte_number, in_packet->payload, data_size);
 }
 
-void save_chunk(int chunk_id){
+int save_chunk(int chunk_id){
   char* filename = NULL;
   struct Chunk* chunk = &current_request->chunks[chunk_id];
   if(chunk->received_byte_number == BT_CHUNK_SIZE){
@@ -210,7 +210,9 @@ void save_chunk(int chunk_id){
     chunk->data = NULL;
     chunk->received_seq_number = 0;
     chunk->received_byte_number = 0;
+    return 1;
   }
+  return -1;
 }
 
 int all_chunk_finished(){

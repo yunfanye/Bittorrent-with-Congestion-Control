@@ -92,16 +92,12 @@ void process_inbound_udp(int sock) {
     	printf("GET IHAVE: %u\n", peer_id);
     	/* TODO conversion */
     	print_incoming_packet(incoming_packet);
-      print_connections();
       update_connections(peer_id, incoming_packet);
       print_connections();
-      printf("After update connect: peer id: %d\n", peer_id);
       if(current_request!=NULL){
         // TODO: may need to update timestamp for the new current_request
         // pick a chunk and mark the chunk as RECEIVING
-        printf("before picking chunk\n");
         chunk_hash = pick_a_chunk(incoming_packet, &p_chunk);
-        printf("picked a chunk: %p\n", chunk_hash);
         if(chunk_hash!=NULL){
           /* add a transmission stream, i.e. associate the stream with peer */
           printf("start downloading\n");
@@ -118,7 +114,7 @@ void process_inbound_udp(int sock) {
       }
       break;
     case GET:    	
-      chunk_hash = (uint8_t*)(incoming_packet + header_length);
+      chunk_hash = (uint8_t*)((char*)incoming_packet + header_length);
       /* if find chunk != NULL*/
   		if(find_chunk(chunk_hash)==1){
     	/* init a transmission stream and respond data 
@@ -136,11 +132,11 @@ void process_inbound_udp(int sock) {
       last_continuous_seq = track_data_packet(peer_id, seq_number, data_length);
       printf("DATA packet DEBUG\n"); 
       // ignore historical packets
-      if(seq_number<last_continuous_seq+1){
+      if(seq_number<last_continuous_seq){
           return;
       } 
       // later packet arrived first, send duplicate ACK
-      else if(seq_number>last_continuous_seq+1){
+      else if(seq_number>last_continuous_seq){
           packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);
           free(packet);
@@ -155,15 +151,17 @@ void process_inbound_udp(int sock) {
           // each chunk has 512*1024 bytes, each packet has 1500-16 max bytes data
           save_data_packet(incoming_packet ,chunk_id);
           // save the whole chunk if finished
-          save_chunk(chunk_id); // verify chunk is done within the function
-          // Download next chunk if exists
-          chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
-          if(chunk_hash!=NULL){
-            /* add a transmission stream, i.e. associate the stream with peer */
-            if(start_download(peer_id, chunk_hash)){
-              packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
-              send_packet(*packet, sock, (struct sockaddr*)&from);
-              free(packet);
+          // verify chunk is done within the function
+          if(save_chunk(chunk_id) > 0) {
+            // Download next chunk if exists
+            chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
+            if(chunk_hash!=NULL){
+              /* add a transmission stream, i.e. associate the stream with peer */
+              if(start_download(peer_id, chunk_hash)){
+                packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
+                send_packet(*packet, sock, (struct sockaddr*)&from);
+                free(packet);
+              }
             }
           }
       }
