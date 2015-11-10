@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 use strict;
 
 my $QUEUEMAX = 10;
@@ -411,14 +411,15 @@ sub main() {
 			$selSock->recv($pkt, $PACKETSIZEMAX);
 			if ($verbose > 3) { print "Got a packet\n"; }
 			my($port, $ipaddr) = sockaddr_in($selSock->peername);
-
+			
 			my ($srcID, $srcIP, $destIP, $srcPort, $destPort) = unpack("NNNnn", $pkt);
+			#print "JUNCHENJ: CHECK $srcID, ".NSRouter::inet_ntoa(pack("N", $srcIP)).", ".NSRouter::inet_ntoa(pack("N", $destIP)).", $srcPort, $destPort\n";
 			if (inet_ntoa(pack("N", $srcIP)) eq "0.0.0.0") { $srcIP = unpack("N", inet_aton("127.0.0.1")); }
 			if (inet_ntoa(pack("N", $destIP)) eq "0.0.0.0") { $destIP = unpack("N", inet_aton("127.0.0.1")); }
 			if ($verbose > 3) {
 				print "spiffy_header src: ".NSRouter::inet_ntoa(pack("N", $srcIP)).":$srcPort\n";
 				print "spiffy_header dst: ".NSRouter::inet_ntoa(pack("N", $destIP)).":$destPort\n";
-				print "packet contents: ".Dumper(substr($pkt, 16));
+				#print "packet contents: ".Dumper(substr($pkt, 16));
 			}
 
 			my $nodeID = unpack("N", $pkt);
