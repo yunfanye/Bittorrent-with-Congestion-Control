@@ -1,5 +1,3 @@
-
-
 int find_chunk(char* hash){
   int i = 0;
   for(i = 0; i < has_chunk_table->chunk_number; i++){
@@ -59,4 +57,11 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
 void free_request(struct Request* p){
   free(p->chunks);
   free(p);
+}
+
+/* return timestamp in milliseconds */
+unsigned long milli_time() {
+	struct timeval time;
+	gettimeofday(&time, NULL);
+	return time.tv_sec * 1000 + time.tv_usec;
 }
