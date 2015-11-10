@@ -159,7 +159,6 @@ void send_whohas_packet_to_all(struct packet* packets, int packet_count, int soc
 void whohas_flooding(struct Request* request){
   int packet_count = 0;
   struct packet* packets = make_packet(WHOHAS, NULL, NULL, -1, 0, 0, NULL, &packet_count, request);
-  for(int i=0;i<packet_count;i++){
   int i;
   for(i=0;i<packet_count;i++){
     print_packet(&packets[i]);

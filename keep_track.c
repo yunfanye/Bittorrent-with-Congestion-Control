@@ -115,7 +115,7 @@ unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 	}
 	
 	root = last_acked_record[index];
-	printf("to add record\n");
+	printf("to add record, root: %p\n", root);
 	/* add new record to the tracker */
 	add_record(root, seq, len);
 	/* find the largest continous seq */
