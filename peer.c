@@ -225,7 +225,6 @@ void peer_run(bt_config_t *config) {
   print_request(has_chunk_table);
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   print_request(has_chunk_table);
-  printf("asdas\n");
   while (1) {
     int nfds;
     FD_SET(STDIN_FILENO, &readfds);

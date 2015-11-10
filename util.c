@@ -36,7 +36,7 @@ void print_chunks(struct Chunk* chunks, int chunk_number){
   {
     memset(hash_buffer, 0, SHA1_HASH_SIZE * 2 + 1);
     binary2hex(chunks[i].hash, SHA1_HASH_SIZE, hash_buffer);
-    printf("Hash: %s\n", hash_buffer);
+    printf("id: %d Hash: %s state: %d\n", chunks[i].id, hash_buffer, chunks[i].state);
   }
 }
 
@@ -47,7 +47,7 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
   FILE *f;
   int chunk_count = 0;
   int i;
-  uint8_t hash[SHA1_HASH_SIZE*2];
+  uint8_t hash[SHA1_HASH_SIZE*2+1];
   uint8_t binary_hash[SHA1_HASH_SIZE];
   char line[MAX_LINE_LENGTH];
   struct Chunk* p_chunk;
@@ -67,8 +67,10 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
   request->chunks = (struct Chunk*)malloc(sizeof(struct Chunk) * chunk_count);
   p_chunk = request->chunks;
   i = 0;
-  while (fgets(line, MAX_LINE_LENGTH, f) != NULL) {
-    sscanf(line,"%d %s", &(p_chunk[i].id), hash);
+  int tempnum;
+  while (fgets(line, MAX_LINE_LENGTH, f)) {
+    printf("%d\n", i);
+    sscanf(line, "%d %s", &(p_chunk[i].id), hash);
     hex2binary((char*)hash, SHA1_HASH_SIZE*2, binary_hash);
     strncpy((char*)(p_chunk[i].hash), (char*)binary_hash, sizeof(binary_hash));
     if(output_filename!=NULL){
@@ -80,13 +82,12 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
     p_chunk[i].received_seq_number = 0;
     p_chunk[i].received_byte_number = 0;
     p_chunk[i].data = NULL;
+    i++;
   }
   fclose(f);
   if(output_filename!=NULL){
     memcpy(request->filename, output_filename, FILE_NAME_SIZE);
   }
-  printf("return from parse\n");
-  print_request(request);
   return request;
 }
 
