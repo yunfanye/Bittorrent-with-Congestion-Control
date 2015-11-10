@@ -2,6 +2,7 @@
 #define _KEEP_TRACK_H_
 
 #include <stdlib.h>
+#include <stdint.h>
 
 /* received data packet record */
 struct packet_record {

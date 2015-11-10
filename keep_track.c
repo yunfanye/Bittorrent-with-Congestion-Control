@@ -228,6 +228,7 @@ int wait_ack(int peer_id, unsigned seq) {
 		tail -> next = new_node;
 		tail = new_node;
 	}
+	return 1;
 }
 
 /* receive a ACK packet, clean wait ack queue 
@@ -276,6 +277,7 @@ int finish_download(int index) {
 	/* TODO: inform user */
 	
 	abort_download(peer_id);
+	return 1;
 }
 
 /* map peer id to download stream index, -1 on error */

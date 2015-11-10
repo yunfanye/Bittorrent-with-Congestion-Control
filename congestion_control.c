@@ -10,6 +10,7 @@ int init_controller(int max) {
 	max_cwnds = malloc(max * sizeof(unsigned));
 	ack_counts = malloc(max * sizeof(unsigned));
 	cc_policies = malloc(max * sizeof(enum cc_policy));
+	return 1;
 }
 
 int window_control(int peer_id, int count) {
@@ -30,6 +31,7 @@ int window_control(int peer_id, int count) {
 		}
 	}
 	max_cwnds[index] = MAX(cwnds[index], max_cwnds[index]);
+	return 1;
 }
 
 void window_timeout(int peer_id) {
