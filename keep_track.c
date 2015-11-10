@@ -52,7 +52,7 @@ int init_tracker(int max) {
 	return 1;
 }
 
-/* keep record of the new data packet of seq and len
+/* Receive data: keep record of the new data packet of seq and len
  * and return the last continous seq number 
  * inform user if transmission is completed */
 unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
