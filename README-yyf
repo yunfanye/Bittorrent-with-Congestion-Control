@@ -4,7 +4,9 @@
 
 /* call wait_ack(int peer_id, unsigned seq) after sending a data packet */
 
-/* call window_timeout(changed to "unsigned get_timeout_seq(int peer_id)") if a packet timeouts */ 
+/* clean_download_timeout and clean_download_timeout return peer id */
+
+/* call window_timeout(peer_id) if a packet timeouts */ 
 
 /* end interface */
 
