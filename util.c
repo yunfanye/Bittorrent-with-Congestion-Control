@@ -69,7 +69,6 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
   i = 0;
   //int tempnum;
   while (fgets(line, MAX_LINE_LENGTH, f)) {
-    printf("%d\n", i);
     sscanf(line, "%d %s", &(p_chunk[i].id), hash);
     hex2binary((char*)hash, SHA1_HASH_SIZE*2, binary_hash);
     strncpy((char*)(p_chunk[i].hash), (char*)binary_hash, sizeof(binary_hash));
@@ -86,6 +85,7 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
   }
   fclose(f);
   if(output_filename!=NULL){
+    request->filename = (char*)malloc(FILE_NAME_SIZE);
     memcpy(request->filename, output_filename, FILE_NAME_SIZE);
   }
   return request;

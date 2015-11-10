@@ -82,10 +82,12 @@ void process_inbound_udp(int sock) {
       packet = make_packet(IHAVE, NULL, NULL, 0, 0, 0, incoming_packet, NULL, NULL);
       if(packet!=NULL){
         send_packet(*packet, sock, (struct sockaddr*)&from);
+        print_packet(packet);
         free(packet);
       }
       break;
     case IHAVE:
+    print_packet(incoming_packet);
       update_connections(peer_id, incoming_packet);
       if(current_request!=NULL){
         // TODO: may need to update timestamp for the new current_request
@@ -220,7 +222,6 @@ void peer_run(bt_config_t *config) {
   connections = NULL;
   has_chunk_table = NULL;
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
-  print_request(has_chunk_table);
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   print_request(has_chunk_table);
   while (1) {
