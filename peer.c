@@ -252,6 +252,8 @@ void peer_run(bt_config_t *config) {
       }
     }
 
+    send_data_packets();
+
     // Need to do whohas_flooding periodically
     // if(get_time_diff(&last_flood_whohas_time) > WHOHAS_FLOOD_INTERVAL_MS){
     //     whohas_flooding(current_request);
