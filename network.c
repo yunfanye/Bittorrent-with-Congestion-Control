@@ -263,7 +263,7 @@ void send_data_packets(){
       read_file(master_data_file_name, data, MAX_PAYLOAD_SIZE, 
       	upload_chunk_id_list[i] * BT_CHUNK_SIZE + seq_number * MAX_PAYLOAD_SIZE);
       printf("after reading file\n");
-      struct packet* packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number, 0, NULL, NULL, NULL);
+      struct packet* packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number + 1, 0, NULL, NULL, NULL);
       print_packet(packet);
       /* Send GET */
       printf("sent data pack to peer %d\n", peer_id);
