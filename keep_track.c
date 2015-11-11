@@ -270,7 +270,9 @@ int receive_ack(int peer_id, unsigned seq) {
 	if(last_ack_table[index] == seq) {
  		dup_ack_count[index]++;
  		if(dup_ack_count[index] >= 3) {
- 			fast_retransmit(seq + 1);
+ 			/* since we don't implement fast recovery, simply set it as timeout */
+ 			if(head -> seq == seq + 1)
+ 				head -> timestamp -= RTO;
  			dup_ack_count[index] = 0;
  		}
  	}
