@@ -232,10 +232,8 @@ int validate_packet(unsigned short magic_number, unsigned char version_number, u
 struct sockaddr_in* find_addr(int peer_id){
   bt_peer_t *p;
   for (p = config.peers; p != NULL; p = p->next) {
-    /* port and ip addr match */
-    printf("port: %d, port recv: %d\n", p -> addr.sin_port, peer_addr.sin_port);
     if (p -> id == peer_id) {
-      return &p.addr;
+      return &(p->addr);
     }
   }
   return NULL;
@@ -246,8 +244,9 @@ void send_data_packets(){
   struct sockaddr_in* from;
   while(temp){
     int peer_id = temp->peer_id;
+    unsigned seq_number = get_tail_seq_number(peer_id);
     if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
-      &&get_tail_seq_number(peer_id)<=MAX_PACKET_PER_CHUNK){
+      &&seq_number<=MAX_PACKET_PER_CHUNK){
       char data[MAX_PAYLOAD_SIZE];
       read_file(current_request->filename, data, MAX_PAYLOAD_SIZE, get_tail_seq_number(peer_id)*MAX_PAYLOAD_SIZE);
       struct packet* packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number, 0, NULL, NULL, NULL);

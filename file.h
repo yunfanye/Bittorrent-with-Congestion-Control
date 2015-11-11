@@ -13,7 +13,7 @@ int create_file(char * filename, int size);
 
 /* read from file, write to buf, starting from offset and writing continous
  * length bytes */
-int read_file(char * filename, char * buf, int length, int offset)
+int read_file(char * filename, char * buf, int length, int offset);
 
 /* write buf to file, starting from offset and writing continous
  * length bytes */
