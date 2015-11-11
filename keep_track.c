@@ -5,6 +5,7 @@
 #include "sha.h"
 #include "util.h"
 #include <time.h>
+#include <stdio.h>
 
 /* RTT and deviation smoothed coefficient */
 #define ALPHA					0.85
@@ -217,20 +218,24 @@ unsigned get_timeout_seq(int peer_id) {
 /* send a DATA packet, wait for ack; enqueue */
 int wait_ack(int peer_id, unsigned seq) {
 	int index = get_upload_index_by_id(peer_id);
+	struct sent_packet * head = sent_queue_head[index];
 	struct sent_packet * tail = sent_queue_tail[index];
 	struct sent_packet * new_node = malloc(sizeof(struct sent_packet));
 	new_node -> seq = seq;
 	new_node -> timestamp = milli_time(); /* get current timestamp */
 	new_node -> next = NULL;
-	if(tail == NULL) {
+	if(head == NULL || tail == NULL) {
+		if(head == NULL && tail != NULL)
+			free(tail);
 		sent_queue_tail[index] = new_node;
 		sent_queue_head[index] = new_node;
 	}
 	else {
 		tail -> next = new_node;
 		tail = new_node;
+		sent_queue_tail[index] = tail;
 	}
-	/* size incr */
+	/* size incr */	
 	sent_queue_size[index]++;
 	return 1;
 }
@@ -250,7 +255,8 @@ int receive_ack(int peer_id, unsigned seq) {
 			infer_RTT(head -> timestamp);
 		tmp = head;
 		head = head -> next;
-		free(tmp);
+		if(head != NULL)
+			free(tmp);
 		count++;
 	}
 	/* update upload last interaction time */

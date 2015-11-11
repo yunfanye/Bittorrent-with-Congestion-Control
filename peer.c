@@ -122,7 +122,7 @@ void process_inbound_udp(int sock) {
     	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
         printf("peer_id: %d, GET packet here\n", peer_id);
-		    if(start_upload(peer_id, get_chunk_id(chunk_hash, has_chunk_table)));
+		    if(start_upload(peer_id, get_chunk_id(chunk_hash, has_chunk_table)))
 		  	 	init_cwnd(peer_id);/* init cwnd */
     	}
     	break;
@@ -138,14 +138,14 @@ void process_inbound_udp(int sock) {
       } 
       // later packet arrived first, send duplicate ACK
       else if(seq_number>last_continuous_seq){
-          packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq+1, NULL, NULL, NULL);
+          packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);
           free(packet);
           return;
       }
       // expected packet
       else{
-          packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq+1, NULL, NULL, NULL);
+          packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);
           free(packet);
           // save data to chunk until chunk is filled
@@ -171,6 +171,7 @@ void process_inbound_udp(int sock) {
     	break;
     case ACK:
     	printf("Got ACK packet!\n");
+    	print_incoming_packet(incoming_packet);
     	/* TODO: move pointer */
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
@@ -244,8 +245,7 @@ void peer_run(bt_config_t *config) {
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   print_request(has_chunk_table);
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 50 * 1000; /* 50 ms */
+
 
   char read_buffer[MAX_LINE_LENGTH];
   FILE* master_chunk_file = fopen(config->chunk_file, "r");
@@ -258,6 +258,8 @@ void peer_run(bt_config_t *config) {
 
   while (1) {
     int nfds;
+    timeout.tv_sec = 3;
+  	timeout.tv_usec = 0; /* 50 ms */
     FD_SET(STDIN_FILENO, &readfds);
     FD_SET(sock, &readfds);
     nfds = select(sock+1, &readfds, NULL, NULL, &timeout);   
