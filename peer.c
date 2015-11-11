@@ -42,7 +42,6 @@ void process_inbound_udp(int sock) {
   socklen_t fromlen;
   char buf[BUFLEN];
   int recv_bytes;
-  printf("GET inbound packet!\n");
   fromlen = sizeof(from);
   recv_bytes = spiffy_recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &from, &fromlen);
   if(recv_bytes <= 0) {
@@ -68,7 +67,6 @@ void process_inbound_udp(int sock) {
   unsigned data_length = in_packet_length - header_length;
   unsigned last_continuous_seq;
   short peer_id = bt_peer_id(from);
-  printf("after bt_peer_id: %d\n", peer_id);
   uint8_t* chunk_hash = NULL;
   int ack_count;
   struct packet* packet;
@@ -251,7 +249,6 @@ void peer_run(bt_config_t *config) {
     FD_SET(sock, &readfds);
     nfds = select(sock+1, &readfds, NULL, NULL, &timeout);   
     if (nfds > 0) {
-    	 printf("SELECT return: %d", nfds);
       if (FD_ISSET(sock, &readfds)) {
         process_inbound_udp(sock);
       }
