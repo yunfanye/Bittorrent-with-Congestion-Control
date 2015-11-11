@@ -214,7 +214,6 @@ int save_chunk(int chunk_id){
     	memset(hash_buffer, 0, SHA1_HASH_SIZE * 2 + 1);
     	binary2hex(hash, SHA1_HASH_SIZE, hash_buffer);
     	printf("Hash: %s\n", hash_buffer);
-    	
     	printf("Verification failed!\n");
       chunk -> state = NOT_STARTED;
     }

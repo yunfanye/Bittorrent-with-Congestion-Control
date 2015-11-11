@@ -121,8 +121,10 @@ void process_inbound_udp(int sock) {
     	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
         printf("peer_id: %d, GET packet here\n", peer_id);
-		    if(start_upload(peer_id, get_chunk_id(chunk_hash, has_chunk_table)))
+		    if(start_upload(peer_id, get_chunk_id(chunk_hash, has_chunk_table))){
+          printf("start_upload success\n"); 
 		  	 	init_cwnd(peer_id);/* init cwnd */
+        }
     	}
     	break;
     case DATA:
