@@ -341,16 +341,12 @@ int get_queue_size(int peer_id) {
 }
 
 int get_tail_seq_number(int peer_id){
-	printf("asdkjl\n");
 	int index = get_upload_index_by_id(peer_id);
-	printf("asdkjl: %d\n", index);
-	if(index!=-1){
+	if(index!=-1&&sent_queue_tail!=NULL){
 		struct sent_packet * tail = sent_queue_tail[index];
-		if(tail==NULL){
-			printf("sadhjkadhjlashd\n");
+		if(tail==NULL){;
 			return -1;
 		}
-		printf("asdkjl: %d\n", index);
 		return sent_queue_tail[index]->seq;
 	}
 	return -1;

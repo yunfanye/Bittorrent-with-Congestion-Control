@@ -70,6 +70,10 @@ short bt_peer_id(struct sockaddr_in peer_addr)
   bt_peer_t *p;
   for (p = config.peers; p != NULL; p = p->next) {
   	/* port and ip addr match */
+    printf("chose from %d\n", p->id);
+    char str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(peer_addr.sin_addr), str, INET_ADDRSTRLEN);
+    printf("%s, %d\n", str, peer_addr.sin_port);
     if (p -> addr.sin_port == peer_addr.sin_port &&
     	p -> addr.sin_addr.s_addr == peer_addr.sin_addr.s_addr) {
       printf("found peer_id: %d\n", p->id);

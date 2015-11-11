@@ -68,6 +68,7 @@ void process_inbound_udp(int sock) {
   unsigned data_length = in_packet_length - header_length;
   unsigned last_continuous_seq;
   short peer_id = bt_peer_id(from);
+  printf("after bt_peer_id: %d\n", peer_id);
   uint8_t* chunk_hash = NULL;
   int ack_count;
   struct packet* packet;
