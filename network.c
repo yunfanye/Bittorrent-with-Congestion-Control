@@ -51,6 +51,7 @@ void print_incoming_packet(struct packet* in_packet){
 
 void fill_header(char** packet_header, unsigned char packet_type, unsigned short packet_length, unsigned int seq_number, unsigned int ack_number){
   *packet_header = (char*)malloc(16);
+  memset(packet_header, 0, 16);
   unsigned short magic_number = MAGIC_NUMBER;
   unsigned char version_number = VERSION_NUMBER;
   short header_length = HEADER_LENGTH;
@@ -89,6 +90,7 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
         *packet_count = unfinished_chunk_count/CHUNK_PER_PACKET + 1; 
       }
       struct packet* packets = (struct packet*)malloc(sizeof(struct packet)* (*packet_count));
+      memset(packets, 0, sizeof(struct packet)* (*packet_count));
       if(unfinished_chunk_count==0){
         packets = NULL;
         free(packets);
@@ -115,6 +117,7 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
       return packets;
     case IHAVE:
       packet = (struct packet*)malloc(sizeof(struct packet));
+      memset(packet, 0, sizeof(struct packet));
       unsigned char chunk_count = *((char*)packet_in+16);
       unsigned char count_ihave = 0;
 
@@ -137,16 +140,19 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
       break;
     case GET:
       packet = (struct packet*)malloc(sizeof(struct packet));
+      memset(packet, 0, sizeof(struct packet));
       fill_header(&packet->header, GET, SHA1_HASH_SIZE+HEADER_LENGTH, 0, 0);
       memcpy(packet->payload, p_chunk->hash, SHA1_HASH_SIZE);
       break;
     case DATA:
       packet = (struct packet*)malloc(sizeof(struct packet));
+      memset(packet, 0, sizeof(struct packet));
       fill_header(&packet->header, DATA, data_size+HEADER_LENGTH, seq_number, 0);
       memcpy(packet->payload, data, data_size);
       break;
     case ACK:
       packet = (struct packet*)malloc(sizeof(struct packet));
+      memset(packet, 0, sizeof(struct packet));
       fill_header(&packet->header, ACK, HEADER_LENGTH, 0, ack_number);
       break;
     default:

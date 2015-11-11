@@ -81,7 +81,6 @@ void process_inbound_udp(int sock) {
       // reply if it has any of the packets that the WHOHAS packet inquires
       // print_packet(incoming_packet);
       packet = make_packet(IHAVE, NULL, NULL, 0, 0, 0, incoming_packet, NULL, NULL);
-      print_packet(packet);
       if(packet!=NULL){
         print_packet(packet);
         send_packet(*packet, sock, (struct sockaddr*)&from);
@@ -175,6 +174,7 @@ void process_inbound_udp(int sock) {
     	break;
     case ACK:
     	/* TODO: move pointer */
+      // print_incoming_packet(incoming_packet);
     	printf("ack %d\n", ack_number);
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
