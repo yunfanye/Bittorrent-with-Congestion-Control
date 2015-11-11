@@ -228,3 +228,17 @@ int validate_packet(unsigned short magic_number, unsigned char version_number, u
 //   struct packet* packet = NULL;
 //   packet = make_packet();
 // }
+
+
+void send_data_packets(){
+  struct connection* temp = connections;
+  while(temp){
+    int index = get_upload_index_by_id(peer_id);
+    if(in_window(index)){
+
+      
+    }
+    temp = temp->next;
+  }
+
+}

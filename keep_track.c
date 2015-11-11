@@ -27,7 +27,7 @@ static struct packet_record ** last_acked_record;
 static struct sent_packet ** sent_queue_head, ** sent_queue_tail;
 static int * download_id_map;
 static uint8_t ** download_chunk_map; 
-static int * upload_id_map;
+int * upload_id_map;
 static int max_conns;
 static unsigned * upload_last_time;
 static unsigned * download_last_time;
