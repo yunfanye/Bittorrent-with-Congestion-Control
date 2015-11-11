@@ -257,7 +257,7 @@ void send_data_packets(){
     unsigned seq_number = get_tail_seq_number(peer_id);   
     if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
       && seq_number < MAX_PACKET_PER_CHUNK){
-      printf("id %d, queue %d, cwnd %d, seq: %d\n", peer_id, get_queue_size(peer_id), get_cwnd_size(peer_id), seq_number);
+      printf("id %d, queue %d, cwnd %d, seq: %d, chunk id %d\n", peer_id, get_queue_size(peer_id), get_cwnd_size(peer_id), seq_number, upload_chunk_id_list[i]);
       char data[MAX_PAYLOAD_SIZE];
       struct packet* packet;
       if(seq_number==MAX_PACKET_PER_CHUNK-1){
