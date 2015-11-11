@@ -222,7 +222,7 @@ unsigned get_timeout_seq(int peer_id) {
 	if((milli_time() - head -> timestamp) > RTO) {		
 		/* retransmit, update time stamp */
 		seq = head -> seq;
-		printf("\npeer %d, seq %d TIME OUT!!!! current %lu, stamp %lu\n", peer_id, seq, milli_time(), head -> timestamp);
+		//printf("\npeer %d, seq %d TIME OUT!!!! current %lu, stamp %lu\n", peer_id, seq, milli_time(), head -> timestamp);
 		head -> timestamp = milli_time();
 		return seq;
 	}
