@@ -303,4 +303,5 @@ void send_data_packets() {
     }
   }
   free(upload_id_list);
+  free(upload_chunk_id_list);
 }
