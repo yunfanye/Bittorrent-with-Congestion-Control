@@ -24,6 +24,7 @@
 /* static variables, only used in this file */
 /* of max downloads size, each can be a separate transmission stream */
 static struct packet_record ** last_acked_record;
+static int * sent_queue_size;
 static struct sent_packet ** sent_queue_head, ** sent_queue_tail;
 static int * download_id_map;
 static uint8_t ** download_chunk_map; 
@@ -89,6 +90,7 @@ int init_tracker(int max) {
 	download_chunk_map = malloc(max * sizeof(uint8_t *));
 	download_last_time = malloc(max * sizeof(unsigned));
 	upload_last_time = malloc(max * sizeof(unsigned));
+	sent_queue_size = malloc(max * sizeof(int));
 	if(download_chunk_map == NULL)
 		return 0;
 	memset(sent_queue_head, 0, max * sizeof(struct sent_packet *));
@@ -121,7 +123,8 @@ unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 	/* find the largest continous seq */
 	node = root;
 	while(node -> next != NULL && 
-		node -> seq + node -> length == node -> next -> seq) {
+		node -> seq + 1 == node -> next -> seq) {
+		/* next seq is 1 greater than previous one */
 		node = node -> next;
 	}
 		
@@ -138,8 +141,8 @@ unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 	/* update download last interaction time */
 	download_last_time[index] = milli_time();
 	
-	if(last_continous_seq + root -> length == CHUNK_SIZE) {
-		/* downloading completed */	
+	if(last_continous_seq == CHUNK_SIZE) {
+		/* TODO: downloading completed */	
 		finish_download(index);
 		free(root);
 	}
@@ -230,6 +233,8 @@ int wait_ack(int peer_id, unsigned seq) {
 		tail -> next = new_node;
 		tail = new_node;
 	}
+	/* size incr */
+	sent_queue_size[index]++;
 	return 1;
 }
 
@@ -255,6 +260,8 @@ int receive_ack(int peer_id, unsigned seq) {
 	upload_last_time[index] = milli_time();
 	/* TODO: three dup acks should invoke fast retransmission */
 	sent_queue_head[index] = head;
+	/* record size */
+	sent_queue_size[index] -= count;
 	return count;
 }
 
@@ -322,4 +329,9 @@ struct packet_record * add_record(struct packet_record * root, unsigned seq, uns
 	new_node -> next = root -> next;
 	root -> next =  new_node;
 	return saved;
+}
+
+int get_queue_size(int peer_id) {
+	int index = get_upload_index_by_id(peer_id);
+	return sent_queue_size[index];
 }
