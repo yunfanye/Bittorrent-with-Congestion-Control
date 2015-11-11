@@ -139,13 +139,19 @@ void process_inbound_udp(int sock) {
       // ignore historical packets
       printf("GOT data pack: %d, last: %d\n", seq_number, last_continuous_seq);
       if(seq_number<last_continuous_seq){
-          break;
+        printf("Receive historical data packet, ack with last_continuous_seq\n");
+        packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
+        send_packet(*packet, sock, (struct sockaddr*)&from);
+        print_packet(packet);
+        free_packet(packet);
+        break;
       } 
       // later packet arrived first, send duplicate ACK
       else if(seq_number > last_continuous_seq){
       		printf("DOWNLOAD TIMOUT, SEND DUP ACKS!\n");
           packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);
+          print_packet(packet);
           free_packet(packet);
           /* discard the packet as it is very difficult to save the reordered
            * packet due to the stupid protocol */
@@ -155,6 +161,7 @@ void process_inbound_udp(int sock) {
       else{
           packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);
+          print_packet(packet);
           free_packet(packet);
           // save data to chunk until chunk is filled
           // each chunk has 512*1024 bytes, each packet has 1500-16 max bytes data
@@ -181,7 +188,7 @@ void process_inbound_udp(int sock) {
     case ACK:
     	/* TODO: move pointer */
       // print_incoming_packet(incoming_packet);
-    	//printf("ack %d\n", ack_number);
+    	printf("ack %d\n", ack_number);
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
       if(ack_number==MAX_PACKET_PER_CHUNK){
