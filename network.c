@@ -229,14 +229,30 @@ int validate_packet(unsigned short magic_number, unsigned char version_number, u
 //   packet = make_packet();
 // }
 
+struct sockaddr_in* find_addr(int peer_id){
+  bt_peer_t *p;
+  for (p = config.peers; p != NULL; p = p->next) {
+    /* port and ip addr match */
+    printf("port: %d, port recv: %d\n", p -> addr.sin_port, peer_addr.sin_port);
+    if (p -> id == peer_id) {
+      return &p.addr;
+    }
+  }
+  return NULL;
+}
 
 void send_data_packets(){
   struct connection* temp = connections;
+  struct sockaddr_in* from;
   while(temp){
-    int index = get_upload_index_by_id(peer_id);
-    if(in_window(index)){
-
-      
+    int peer_id = temp->peer_id;
+    if(in_window(peer_id)){
+      struct packet* packet = make_packet(DATA, NULL, data, data_size, seq_number, 0, NULL, NULL, NULL);
+      /* Send GET */
+      from = find_addr(peer_id);
+      send_packet(*packet, sock, (struct sockaddr*)from);
+      free(packet->header);
+      free(packet);
     }
     temp = temp->next;
   }
