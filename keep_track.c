@@ -186,6 +186,8 @@ int abort_download(int peer_id) {
 	download_id_map[index] = ID_NULL;
 	/* release resource */
 	free(download_chunk_map[index]);
+	free(last_acked_record[index]);
+	last_acked_record[index] = NULL;
 	return 1;
 }
 
