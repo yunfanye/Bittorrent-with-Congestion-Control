@@ -243,9 +243,11 @@ struct sockaddr_in* find_addr(int peer_id){
 void send_data_packets(){
   struct connection* temp = connections;
   struct sockaddr_in* from;
+  
   while(temp){
     int peer_id = temp->peer_id;
     unsigned seq_number = get_tail_seq_number(peer_id);
+    printf("Send data packet, queue:%d, cwnd: %d\n", get_queue_size(peer_id), get_cwnd_size(peer_id));
     if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
       &&seq_number<=MAX_PACKET_PER_CHUNK){
       char data[MAX_PAYLOAD_SIZE];

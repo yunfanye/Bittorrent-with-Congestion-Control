@@ -93,6 +93,7 @@ int init_tracker(int max) {
 	sent_queue_size = malloc(max * sizeof(int));
 	if(download_chunk_map == NULL)
 		return 0;
+	memset(sent_queue_size, 0, max * sizeof(int));
 	memset(sent_queue_head, 0, max * sizeof(struct sent_packet *));
 	memset(last_acked_record, 0, max * sizeof(struct packet_record *));
 	memset(download_id_map, 0, max * sizeof(int));
