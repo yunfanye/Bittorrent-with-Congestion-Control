@@ -279,18 +279,15 @@ void download_peer_crash(){
   int i=0;
   for(i=0;i < current_request->chunk_number; i++){
     if(memcmp(hash, current_request->chunks[i].hash, SHA1_HASH_SIZE) == 0){
-      printf("sadljkhas\n");
       current_request->chunks[i].state = NOT_STARTED;
       if(current_request->chunks[i].data!=NULL){
         free(current_request->chunks[i].data);
       }
-      printf("sadljkhas11\n");
       current_request->chunks[i].received_seq_number = 0;
       current_request->chunks[i].received_byte_number = 0;
       break;
     }
   }
-  printf("sadljkhas11\n");
   struct connection* temp = connections;
   if(temp->peer_id==peer_id){
     struct connection* p = connections;
@@ -298,7 +295,6 @@ void download_peer_crash(){
     free_connection(p);
     return;
   }
-  printf("sadljkhas112222\n");
   while(temp->next&&temp){
     if(temp->next->peer_id==peer_id){
       struct connection* p = temp->next;

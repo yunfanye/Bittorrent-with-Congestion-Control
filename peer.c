@@ -181,6 +181,9 @@ void process_inbound_udp(int sock) {
     	//printf("ack %d\n", ack_number);
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
+      if(ack_number==MAX_PACKET_PER_CHUNK){
+        abort_upload(peer_id);
+      }
     	break;
     case DENIED:
     	abort_download(peer_id);
@@ -287,6 +290,7 @@ void peer_run(bt_config_t *config) {
     //     gettimeofday(&last_flood_whohas_time, NULL);
     // }
     if(all_chunk_finished(current_request)){
+      printf("all chunk finished, GET request DONE\n");
       free(current_request->filename);      
       free(current_request);
       current_request = NULL;
