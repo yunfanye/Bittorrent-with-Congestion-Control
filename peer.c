@@ -171,6 +171,7 @@ void process_inbound_udp(int sock) {
     	break;
     case ACK:
     	/* TODO: move pointer */
+      // print_incoming_packet(incoming_packet);
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
     	break;
