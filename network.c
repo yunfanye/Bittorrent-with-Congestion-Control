@@ -18,7 +18,7 @@ void print_packet(struct packet* packet){
     binary2hex((uint8_t *)(&(packet->payload[i])), SHA1_HASH_SIZE, ascii_buf);
     printf("hash: %s\n", ascii_buf);
   }
-  printf("End printing packet....................................................................\n");
+  printf("End printing packet....................................................................\n\n");
 }
 
 void print_incoming_packet(struct packet* in_packet){
@@ -40,7 +40,7 @@ void print_incoming_packet(struct packet* in_packet){
     binary2hex((uint8_t*)(packet+i), SHA1_HASH_SIZE, ascii_buf);
     printf("hash: %s\n", ascii_buf);
   }
-  printf("End printing packet....................................................................\n");
+  printf("End printing packet....................................................................\n\n");
 }
 
 
@@ -242,13 +242,19 @@ struct sockaddr_in* find_addr(int peer_id){
 void send_data_packets(){
   struct connection* temp = connections;
   struct sockaddr_in* from;
+  printf("send_data_packets\n");
   while(temp){
     int peer_id = temp->peer_id;
-    unsigned seq_number = get_tail_seq_number(peer_id);
+    printf("send_data_packets, while: %d\n", peer_id);
+    printf("here: %d\n", get_tail_seq_number(peer_id));
+    int seq_number = get_tail_seq_number(peer_id);
+    printf("here\n");
     if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
       &&seq_number<=MAX_PACKET_PER_CHUNK){
       char data[MAX_PAYLOAD_SIZE];
+      printf("here\n");
       read_file(current_request->filename, data, MAX_PAYLOAD_SIZE, get_tail_seq_number(peer_id)*MAX_PAYLOAD_SIZE);
+      printf("here\n");
       struct packet* packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number, 0, NULL, NULL, NULL);
       /* Send GET */
       from = find_addr(peer_id);
@@ -258,5 +264,5 @@ void send_data_packets(){
     }
     temp = temp->next;
   }
-
+  printf("finish send_data_packets\n");
 }

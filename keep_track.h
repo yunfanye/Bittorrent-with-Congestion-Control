@@ -66,4 +66,6 @@ int get_upload_index_by_id(int id);
  * a long time, guessing that peer has trouble */
 void clean_timeout();
 
+int get_queue_size(int peer_id);
+int get_tail_seq_number(int peer_id);
 #endif

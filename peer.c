@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     bt_dump_config(&config);
   }
 #endif
-  
+  bt_dump_config(&config);
   peer_run(&config);
   return 0;
 }
@@ -67,7 +67,7 @@ void process_inbound_udp(int sock) {
   // char * data_buf = buf + header_length;
   unsigned data_length = in_packet_length - header_length;
   unsigned last_continuous_seq;
-  unsigned peer_id = bt_peer_id(from);
+  short peer_id = bt_peer_id(from);
   uint8_t* chunk_hash = NULL;
   int ack_count;
   struct packet* packet;
@@ -89,7 +89,7 @@ void process_inbound_udp(int sock) {
       }
       break;
     case IHAVE:
-    	printf("GET IHAVE: %u\n", peer_id);
+    	printf("GET IHAVE: %d\n", peer_id);
     	/* TODO conversion */
     	print_incoming_packet(incoming_packet);
       update_connections(peer_id, incoming_packet);
@@ -137,7 +137,7 @@ void process_inbound_udp(int sock) {
       } 
       // later packet arrived first, send duplicate ACK
       else if(seq_number>last_continuous_seq){
-          packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
+          packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq+1, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);
           free(packet);
           return;

@@ -65,13 +65,14 @@ bt_peer_t *bt_peer_info(const bt_config_t *config, int peer_id)
 }
 
 /* find peer id using socket */
-int bt_peer_id(struct sockaddr_in peer_addr)
+short bt_peer_id(struct sockaddr_in peer_addr)
 {
   bt_peer_t *p;
   for (p = config.peers; p != NULL; p = p->next) {
   	/* port and ip addr match */
     if (p -> addr.sin_port == peer_addr.sin_port &&
     	p -> addr.sin_addr.s_addr == peer_addr.sin_addr.s_addr) {
+      printf("found peer_id: %d\n", p->id);
       return p -> id;
     }
   }
