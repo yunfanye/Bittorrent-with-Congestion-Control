@@ -282,11 +282,6 @@ void send_data_packets() {
 			}
     	else{
     		canSend = 0;
-        // int j=0;
-        // printf("Print Queue\n");
-        // for(j=0;j<get_queue_size(peer_id);j++){
-        //   printf("%d ", );
-        // }
       }
     }
     else {
