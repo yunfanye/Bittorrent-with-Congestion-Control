@@ -258,6 +258,7 @@ void send_data_packets(){
       /* Send GET */
       from = find_addr(peer_id);
       send_packet(*packet, sock, (struct sockaddr*)from);
+      wait_ack(peer_id, seq_number);
       free(packet->header);
       free(packet);
     }
