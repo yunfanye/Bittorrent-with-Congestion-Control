@@ -34,6 +34,9 @@ static int * upload_chunk_id_map;
 static int max_conns;
 static unsigned * upload_last_time;
 static unsigned * download_last_time;
+/* fast retransmission */
+static unsigned * last_ack_table;
+static unsigned * dup_ack_count;
 
 /* network parameters */
 static unsigned RTT = 0; /* round trip time */
@@ -95,6 +98,8 @@ int init_tracker(int max) {
 	download_last_time = malloc(max * sizeof(unsigned));
 	upload_last_time = malloc(max * sizeof(unsigned));
 	sent_queue_size = malloc(max * sizeof(int));
+	last_ack_table = malloc(max * sizeof(unsigned));
+	dup_ack_count = malloc(max * sizeof(unsigned));
 	if(download_chunk_map == NULL)
 		return 0;
 	memset(sent_queue_size, 0, max * sizeof(int));
@@ -186,6 +191,8 @@ int start_upload(int peer_id, int chunk_id) {
 			upload_id_map[i] = peer_id;
 			upload_last_time[i] = milli_time();
 			upload_chunk_id_map[i] = chunk_id;
+			last_ack_table[i] = 0;
+			dup_ack_count[i] = 0;
 			return 1;
 		}
 	}
@@ -259,6 +266,17 @@ int receive_ack(int peer_id, unsigned seq) {
 			free(tmp);
 		count++;
 	}
+	/* fast retransmit */
+	if(last_ack_table[index] == seq) {
+ 		dup_ack_count[index]++;
+ 		if(dup_ack_count[index] >= 3) {
+ 			fast_retransmit(seq + 1);
+ 			dup_ack_count[index] = 0;
+ 		}
+ 	}
+	else
+		dup_ack_count[index] = 0;
+	last_ack_table[index] = seq;
 	/* update upload last interaction time */
 	upload_last_time[index] = milli_time();
 	/* TODO: three dup acks should invoke fast retransmission */
