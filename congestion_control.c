@@ -16,7 +16,6 @@ int init_controller(int max) {
 
 int window_control(int peer_id, int count) {
 	int index = get_upload_index_by_id(peer_id);
-	printf("ack count: %d\n", count);
 	if(cc_policies[index] == slow_start)
 		cwnds[index] += count;
 	else if (cc_policies[index] == congestion_avoidance) {
