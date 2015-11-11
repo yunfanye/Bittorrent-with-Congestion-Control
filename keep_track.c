@@ -341,3 +341,19 @@ unsigned get_tail_seq_number(int peer_id){
 	int index = get_upload_index_by_id(peer_id);
 	return sent_queue_tail[index]->seq;
 }
+
+/* return the list of peers regarding upload stream */
+int * get_upload_list(int * retsize) {
+	int i;
+	/* caller calls free */
+	int * result = malloc(max_conns * sizeof(int));
+	int size = 0;
+	for(i = 0; i < max_conns; i++) {
+		if(upload_id_map[i] != ID_NULL) {
+			result[size] = upload_id_map[i];
+			size++;
+		}
+	}
+	*retsize = size;
+	return result;
+}

@@ -241,11 +241,13 @@ struct sockaddr_in* find_addr(int peer_id){
 }
 
 void send_data_packets(){
-  struct connection* temp = connections;
+  int i;
   struct sockaddr_in* from;
-  
-  while(temp){
-    int peer_id = temp->peer_id;
+  int retsize;
+  int * upload_id_list = get_upload_list(&retsize);
+  int peer_id;
+  for(i = 0; i < retsize; i++) {
+  	peer_id = upload_id_list[i];
     unsigned seq_number = get_tail_seq_number(peer_id);
     printf("Send data packet, queue:%d, cwnd: %d\n", get_queue_size(peer_id), get_cwnd_size(peer_id));
     if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
@@ -259,7 +261,6 @@ void send_data_packets(){
       free(packet->header);
       free(packet);
     }
-    temp = temp->next;
   }
-
+	free(upload_id_list);
 }
