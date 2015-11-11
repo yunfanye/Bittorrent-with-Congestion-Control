@@ -260,16 +260,25 @@ void send_data_packets(){
       && seq_number <= MAX_PACKET_PER_CHUNK){
       printf("begin sending: name %s\n", master_data_file_name);
       char data[MAX_PAYLOAD_SIZE];
-      read_file(master_data_file_name, data, MAX_PAYLOAD_SIZE, 
-      	upload_chunk_id_list[i] * BT_CHUNK_SIZE + seq_number * MAX_PAYLOAD_SIZE);
-      printf("after reading file\n");
-      struct packet* packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number, 0, NULL, NULL, NULL);
-      print_packet(packet);
+      struct packet* packet;
+      if(seq_number==MAX_PACKET_PER_CHUNK){
+        read_file(master_data_file_name, data, BT_CHUNK_SIZE-MAX_PAYLOAD_SIZE*(MAX_PACKET_PER_CHUNK-1), 
+          upload_chunk_id_list[i] * BT_CHUNK_SIZE + (seq_number-1) * MAX_PAYLOAD_SIZE);
+        printf("after reading file\n");
+        packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number + 1, 0, NULL, NULL, NULL);
+        print_packet(packet);
+      }else{
+        read_file(master_data_file_name, data, MAX_PAYLOAD_SIZE, 
+          upload_chunk_id_list[i] * BT_CHUNK_SIZE + (seq_number-1) * MAX_PAYLOAD_SIZE);
+        printf("after reading file\n");
+        packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number + 1, 0, NULL, NULL, NULL);
+        print_packet(packet);
+      }
       /* Send GET */
       printf("sent data pack to peer %d\n", peer_id);
       from = find_addr(peer_id);
       send_packet(*packet, sock, (struct sockaddr*)from);
-      wait_ack(peer_id, seq_number);
+      wait_ack(peer_id, seq_number+1);
       free(packet->header);
       free(packet);
     }
