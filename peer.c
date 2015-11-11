@@ -171,6 +171,7 @@ void process_inbound_udp(int sock) {
     	break;
     case ACK:
     	printf("Got ACK packet!\n");
+    	print_incoming_packet(incoming_packet);
     	/* TODO: move pointer */
       print_incoming_packet(incoming_packet);
     	ack_count = receive_ack(peer_id, ack_number);
@@ -245,8 +246,6 @@ void peer_run(bt_config_t *config) {
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   print_request(has_chunk_table);
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 500 * 1000; /* 50 ms */
 
   char read_buffer[MAX_LINE_LENGTH];
   FILE* master_chunk_file = fopen(config->chunk_file, "r");
@@ -259,6 +258,8 @@ void peer_run(bt_config_t *config) {
 
   while (1) {
     int nfds;
+    timeout.tv_sec = 3;
+  	timeout.tv_usec = 0; /* 50 ms */
     FD_SET(STDIN_FILENO, &readfds);
     FD_SET(sock, &readfds);
     nfds = select(sock+1, &readfds, NULL, NULL, &timeout);   
