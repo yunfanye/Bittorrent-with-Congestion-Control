@@ -11,6 +11,10 @@ int open_file(char *pathname);
 /* create a file with fixed size */
 int create_file(char * filename, int size);
 
+/* read from file, write to buf, starting from offset and writing continous
+ * length bytes */
+int read_file(char * filename, char * buf, int length, int offset)
+
 /* write buf to file, starting from offset and writing continous
  * length bytes */
 int write_file(char * filename, char * buf, int length, int offset);
