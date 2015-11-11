@@ -260,8 +260,8 @@ void send_data_packets(){
       printf("id %d, queue %d, cwnd %d, seq: %d, chunk id %d\n", peer_id, get_queue_size(peer_id), get_cwnd_size(peer_id), seq_number, upload_chunk_id_list[i]);
       char data[MAX_PAYLOAD_SIZE];
       struct packet* packet;
-      if(seq_number== MAX_PACKET_PER_CHUNK - 1){
-      	int last_packet_size = BT_CHUNK_SIZE-MAX_PAYLOAD_SIZE*(MAX_PACKET_PER_CHUNK-1);
+      if(seq_number==MAX_PACKET_PER_CHUNK-1){
+        int last_packet_size = BT_CHUNK_SIZE-MAX_PAYLOAD_SIZE*(MAX_PACKET_PER_CHUNK-1);
         read_file(master_data_file_name, data, last_packet_size, 
           upload_chunk_id_list[i] * BT_CHUNK_SIZE + seq_number * MAX_PAYLOAD_SIZE);
         printf("after reading file\n");
