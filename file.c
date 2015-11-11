@@ -20,6 +20,17 @@ int create_file(char * filename, int size) {
 	return ret;
 }
 
+/* read from file, write to buf, starting from offset and writing continous
+ * length bytes */
+int read_file(char * filename, char * buf, int length, int offset) {
+	int ret;
+	int fd = open_file(filename);
+	lseek(fd, offset, SEEK_SET); /* assume good input */
+	ret = read(fd, buf, length);
+	close_file(fd);
+	return ret;
+}
+
 /* write buf to file, starting from offset and writing continous
  * length bytes */
 int write_file(char * filename, char * buf, int length, int offset) {
