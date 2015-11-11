@@ -97,7 +97,7 @@ void process_inbound_udp(int sock) {
         // TODO: may need to update timestamp for the new current_request
         // pick a chunk and mark the chunk as RECEIVING
         chunk_hash = pick_a_chunk(incoming_packet, &p_chunk);
-        printf("picked a chunk %p\n", chunk_hash);
+        printf("picked a chunk");print_hash(chunk_hash);
         if(chunk_hash!=NULL){
           /* add a transmission stream, i.e. associate the stream with peer */
           printf("start downloading\n");
@@ -121,14 +121,19 @@ void process_inbound_udp(int sock) {
     	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
         printf("peer_id: %d, GET packet here\n", peer_id);
-		    if(start_upload(peer_id, get_chunk_id(chunk_hash, has_chunk_table)))
+		    if(start_upload(peer_id, get_chunk_id(chunk_hash, has_chunk_table))){
+          printf("start_upload success\n"); 
 		  	 	init_cwnd(peer_id);/* init cwnd */
+        }
     	}
     	break;
     case DATA:
     	/* get the corresponding chunk of the peer */
     	chunk_hash = get_chunk_hash(peer_id);
       chunk_id = get_chunk_id(chunk_hash, current_request);
+      if(chunk_id<0){
+        return;
+      }
       /* keep track of the packet */
       last_continuous_seq = track_data_packet(peer_id, seq_number, data_length);
       // ignore historical packets
@@ -161,6 +166,7 @@ void process_inbound_udp(int sock) {
             printf("download completed!\n");
             abort_download(peer_id);         
             chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
+            printf("picked a chunk");print_hash(chunk_hash);
             if(chunk_hash!=NULL){
               /* add a transmission stream, i.e. associate the stream with peer */
               if(start_download(peer_id, chunk_hash)){
@@ -178,6 +184,10 @@ void process_inbound_udp(int sock) {
     	//printf("ack %d\n", ack_number);
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
+      if(ack_number==MAX_PACKET_PER_CHUNK){
+        printf("all ACK received, finished UPLOAD\n");
+        abort_upload(peer_id);
+      }
     	break;
     case DENIED:
     	abort_download(peer_id);
@@ -284,6 +294,7 @@ void peer_run(bt_config_t *config) {
     //     gettimeofday(&last_flood_whohas_time, NULL);
     // }
     if(all_chunk_finished(current_request)){
+      printf("all chunk finished, GET request DONE\n");
       free(current_request->filename);      
       free(current_request);
       current_request = NULL;

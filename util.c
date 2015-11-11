@@ -15,7 +15,20 @@ int find_chunk(uint8_t* hash){
   return -1;
 }
 
+void print_hash(uint8_t* hash){
+  if(hash==NULL){
+    printf("Hash is NULL\n");
+    return;
+  }
+  char hash_buffer[SHA1_HASH_SIZE * 2 + 1];
+  binary2hex(hash, SHA1_HASH_SIZE, hash_buffer);
+  printf("Hash: %s\n", hash_buffer);
+}
+
 int get_chunk_id(uint8_t* hash, struct Request* chunk_table){
+  if(chunk_table==NULL){
+    return -1;
+  }
   int i = 0;
   for(i = 0; i < chunk_table->chunk_number; i++){
     if (memcmp(hash, chunk_table->chunks[i].hash, SHA1_HASH_SIZE) == 0) {
@@ -201,7 +214,6 @@ int save_chunk(int chunk_id){
     	memset(hash_buffer, 0, SHA1_HASH_SIZE * 2 + 1);
     	binary2hex(hash, SHA1_HASH_SIZE, hash_buffer);
     	printf("Hash: %s\n", hash_buffer);
-    	
     	printf("Verification failed!\n");
       chunk -> state = NOT_STARTED;
     }
@@ -262,10 +274,7 @@ void update_connections(int peer_id, struct packet* incoming_packet){
 }
 
 void free_connection(struct connection* p){
-  int i=0;
-  for(i=0;i<p->chunk_count;i++){
-    free(&(p->chunks[i]));
-  }
+  free(p->chunks);
   free(p);
 }
 
@@ -295,7 +304,7 @@ void download_peer_crash(){
     free_connection(p);
     return;
   }
-  while(temp->next){
+  while(temp->next&&temp){
     if(temp->next->peer_id==peer_id){
       struct connection* p = temp->next;
       temp->next = temp->next->next;
