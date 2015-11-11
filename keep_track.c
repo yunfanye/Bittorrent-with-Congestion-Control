@@ -109,6 +109,10 @@ int init_tracker(int max) {
 	memset(last_acked_record, 0, max * sizeof(struct packet_record *));
 	memset(download_id_map, 0, max * sizeof(int));
 	memset(upload_id_map, 0, max * sizeof(int));
+	/* set network parameters initial estimation 1s */
+	RTT = 800;
+	deviation = 200;
+	RTO = 1600;
 	return 1;
 }
 
@@ -211,16 +215,15 @@ int abort_upload(int peer_id) {
 /* return the first timeout seq, 0 if no timeout */
 unsigned get_timeout_seq(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
-	printf("get timeout: %d\n", peer_id);
 	struct sent_packet * head = sent_queue_head[index];
 	unsigned seq;
 	if(head == NULL)
 		return 0;
 	if((milli_time() - head -> timestamp) > RTO) {		
 		/* retransmit, update time stamp */
-		head -> timestamp = milli_time();
 		seq = head -> seq;
-		printf("\npeer %d, seq %d TIME OUT!!!!\n", peer_id, seq);
+		printf("\npeer %d, seq %d TIME OUT!!!! current %lu, stamp %lu\n", peer_id, seq, milli_time(), head -> timestamp);
+		head -> timestamp = milli_time();
 		return seq;
 	}
 	else
@@ -228,11 +231,18 @@ unsigned get_timeout_seq(int peer_id) {
 }
 
 /* send a DATA packet, wait for ack; enqueue */
-int wait_ack(int peer_id, unsigned seq) {
+int wait_ack(int peer_id, unsigned seq, int timeout) {
 	int index = get_upload_index_by_id(peer_id);
 	struct sent_packet * head = sent_queue_head[index];
 	struct sent_packet * tail = sent_queue_tail[index];
-	struct sent_packet * new_node = malloc(sizeof(struct sent_packet));
+	struct sent_packet * new_node;
+	
+	if(timeout) {
+		if(head != NULL)
+			head -> timestamp = milli_time();
+		return 0;
+	}
+	new_node = malloc(sizeof(struct sent_packet));
 	new_node -> seq = seq;
 	new_node -> timestamp = milli_time(); /* get current timestamp */
 	new_node -> next = NULL;
@@ -351,7 +361,7 @@ struct packet_record * add_record(struct packet_record * root, unsigned seq, uns
 	/* don't add reordered packet due to stupid protocol, but keep this structure
 	 * to ensure extendibility, in order packet has seq 1 greater than previous 
 	 * one */
-	if(root -> next -> seq + 1 == seq) {
+	if(root -> seq + 1 == seq) {
 		new_node = malloc(sizeof(struct packet_record));
 		new_node -> seq = seq;
 		new_node -> length = len;

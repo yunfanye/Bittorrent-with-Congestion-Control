@@ -14,7 +14,7 @@ struct packet_record {
 /* sent packets that are not "ack"ed, could be GET packet waits for DATA */
 struct sent_packet {
 	unsigned seq;
-	unsigned timestamp;
+	unsigned long timestamp;
 	struct sent_packet * next;
 };
 
@@ -54,7 +54,7 @@ int abort_upload(int peer_id);
 unsigned get_timeout_seq(int peer_id);
 
 /* send a DATA packet, wait for ack */
-int wait_ack(int peer_id, unsigned seq);
+int wait_ack(int peer_id, unsigned seq, int timeout);
 
 /* receive a ACK packet, clean wait ack queue */
 int receive_ack(int peer_id, unsigned seq);

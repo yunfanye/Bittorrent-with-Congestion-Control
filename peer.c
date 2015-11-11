@@ -133,11 +133,12 @@ void process_inbound_udp(int sock) {
       /* keep track of the packet */
       last_continuous_seq = track_data_packet(peer_id, seq_number, data_length);
       // ignore historical packets
+      printf("GOT data pack: %d, last: %d\n", seq_number, last_continuous_seq);
       if(seq_number<last_continuous_seq){
           break;
       } 
       // later packet arrived first, send duplicate ACK
-      else if(seq_number>last_continuous_seq){
+      else if(seq_number > last_continuous_seq){
       		printf("DOWNLOAD TIMOUT, SEND DUP ACKS!\n");
           packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);

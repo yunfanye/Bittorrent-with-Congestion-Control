@@ -253,18 +253,29 @@ void send_data_packets() {
   int * upload_chunk_id_list = get_upload_chunk_list(&chunk_size);
   int peer_id;
   unsigned seq_number;
+  int canSend;
   for(i = 0; i < retsize; i++) {
   	peer_id = upload_id_list[i];
-  	seq_number = 0;   
+  	canSend = 1;
     /* if timeout send timeout packet first */
     if ((seq_number = get_timeout_seq(peer_id)) == 0) {
     	/* if not timout, check window size */
     	if(get_queue_size(peer_id) < get_cwnd_size(peer_id)) {
-				seq_number = get_tail_seq_number(peer_id); 
-    	} 
+				seq_number = get_tail_seq_number(peer_id);
+				/* transmit */
+				wait_ack(peer_id, seq_number + 1, 0);
+			}
+    	else
+    		canSend = 0;
     }
+    else {
+    	/* retransmit */
+    	seq_number -= 1; /* offset by 1 */
+    	wait_ack(peer_id, seq_number + 1, 1);
+    }
+    //printf("seq: %d, canSend: %d, queue: %d, cwnd: %d\n", seq_number, canSend, get_queue_size(peer_id), get_cwnd_size(peer_id));
    	/* send one packet one time to ensure fairness */
-    if(seq_number > 0 && seq_number < MAX_PACKET_PER_CHUNK) {
+    if(canSend && seq_number < MAX_PACKET_PER_CHUNK) {
 		  char data[MAX_PAYLOAD_SIZE];
 		  struct packet* packet;
 		  if(seq_number==MAX_PACKET_PER_CHUNK-1){
@@ -283,7 +294,6 @@ void send_data_packets() {
 		  /* Send DATA */
 		  from = find_addr(peer_id);
 		  send_packet(*packet, sock, (struct sockaddr*)from);
-		  wait_ack(peer_id, seq_number + 1);
 		  free(packet->header);
 		  free(packet);
     }
