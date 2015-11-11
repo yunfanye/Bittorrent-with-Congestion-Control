@@ -18,6 +18,7 @@
 #include "chunk.h"
 #include "network.h"
 #include "keep_track.h"
+#include "common.h"
 
 
 

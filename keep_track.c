@@ -1,6 +1,6 @@
 /* It is reasonable to view connections with different peers separately 
  * and thus track different connection separately */
-
+#include "common.h"
 #include "keep_track.h"
 #include "sha.h"
 #include "util.h"
@@ -106,7 +106,6 @@ int init_tracker(int max) {
  * inform user if transmission is completed */
 unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 	int index = get_download_index_by_id(peer_id);
-	printf("download index: %d\n", index);
 	int last_continous_seq;	
 	struct packet_record * root, * node, * tmp;
 	
@@ -118,7 +117,6 @@ unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 	}
 	
 	root = last_acked_record[index];
-	printf("to add record, root: %p\n", root);
 	/* add new record to the tracker */
 	root = add_record(root, seq, len);
 	/* find the largest continous seq */
@@ -135,18 +133,11 @@ unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 		root = root -> next;
 		free(tmp);
 	}
-	printf("to return\n");
 	last_continous_seq = root -> seq;
 	last_acked_record[index] = root;
 	
 	/* update download last interaction time */
 	download_last_time[index] = milli_time();
-	
-	if(last_continous_seq == CHUNK_SIZE) {
-		/* TODO: downloading completed */	
-		finish_download(index);
-		free(root);
-	}
 	
 	return last_continous_seq;
 }
@@ -282,10 +273,7 @@ void infer_RTT(unsigned timestamp) {
 	RTO = RTT + 4 * deviation;
 }
 
-int finish_download(int index) {
-	int peer_id = download_id_map[index];
-	/* TODO: inform user */
-	
+int finish_download(int peer_id) {
 	abort_download(peer_id);
 	return 1;
 }

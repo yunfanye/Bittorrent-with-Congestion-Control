@@ -11,6 +11,7 @@
 
 #include "peer.h"
 
+
 int main(int argc, char **argv) {
 
   bt_init(&config, argc, argv);
@@ -41,10 +42,9 @@ void process_inbound_udp(int sock) {
   socklen_t fromlen;
   char buf[BUFLEN];
   int recv_bytes;
-  
+  printf("GET inbound packet!\n");
   fromlen = sizeof(from);
   recv_bytes = spiffy_recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &from, &fromlen);
-  printf("GET INBOUND PACKET\n");
   if(recv_bytes <= 0) {
   	/* conn closed or error occurred, close the socket */
   }
@@ -126,13 +126,11 @@ void process_inbound_udp(int sock) {
     	}
     	break;
     case DATA:
-    	printf("Got DATA packet!\n");
     	/* get the corresponding chunk of the peer */
     	chunk_hash = get_chunk_hash(peer_id);
       chunk_id = get_chunk_id(chunk_hash, current_request);
       /* keep track of the packet */
       last_continuous_seq = track_data_packet(peer_id, seq_number, data_length);
-      printf("last seq: %d, seq: %d\n", last_continuous_seq, seq_number);
       // ignore historical packets
       if(seq_number<last_continuous_seq){
           return;
@@ -156,6 +154,8 @@ void process_inbound_udp(int sock) {
           // verify chunk is done within the function
           if(save_chunk(chunk_id) > 0) {
             // Download next chunk if exists
+            printf("download completed!\n");
+            abort_download(peer_id);         
             chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
             if(chunk_hash!=NULL){
               /* add a transmission stream, i.e. associate the stream with peer */
@@ -191,6 +191,7 @@ void process_get(char *chunkfile, char *outputfile){
   current_request = parse_has_get_chunk_file(chunkfile, outputfile);
   print_request(current_request);
   whohas_flooding(current_request);
+  printf("whohas flooding ends\n");
 }
 
 void handle_user_input(char *line, void *cbdata) {
@@ -201,6 +202,7 @@ void handle_user_input(char *line, void *cbdata) {
 
   if (sscanf(line, "GET %120s %120s", chunkf, outf)) {
     if (strlen(outf) > 0) {
+    	create_file(outf, BT_CHUNK_SIZE);
       process_get(chunkf, outf);
     }
   }
@@ -247,8 +249,9 @@ void peer_run(bt_config_t *config) {
     int nfds;
     FD_SET(STDIN_FILENO, &readfds);
     FD_SET(sock, &readfds);
-    nfds = select(sock+1, &readfds, NULL, NULL, &timeout);
+    nfds = select(sock+1, &readfds, NULL, NULL, &timeout);   
     if (nfds > 0) {
+    	 printf("SELECT return: %d", nfds);
       if (FD_ISSET(sock, &readfds)) {
         process_inbound_udp(sock);
       }
