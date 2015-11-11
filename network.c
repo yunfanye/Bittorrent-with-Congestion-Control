@@ -244,8 +244,9 @@ struct sockaddr_in* find_addr(int peer_id){
 void send_data_packets(){
   int i;
   struct sockaddr_in* from;
-  int retsize;
+  int retsize, chunk_size;
   int * upload_id_list = get_upload_list(&retsize);
+  int * upload_chunk_id_list = get_upload_chunk_list(&chunk_size);
   int peer_id;
   for(i = 0; i < retsize; i++) {
   	peer_id = upload_id_list[i];
@@ -255,7 +256,8 @@ void send_data_packets(){
       && seq_number <= MAX_PACKET_PER_CHUNK){
       printf("begin sending: name %s\n", current_request->filename);
       char data[MAX_PAYLOAD_SIZE];
-      read_file(current_request->filename, data, MAX_PAYLOAD_SIZE, seq_number * MAX_PAYLOAD_SIZE);
+      read_file(master_data_file_name, data, MAX_PAYLOAD_SIZE, 
+      	upload_chunk_id_list[i] * BT_CHUNK_SIZE + seq_number * MAX_PAYLOAD_SIZE);
       printf("after reading file\n");
       struct packet* packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number, 0, NULL, NULL, NULL);
       /* Send GET */
