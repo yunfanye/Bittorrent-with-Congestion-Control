@@ -48,6 +48,7 @@ void bt_parse_peer_list(bt_config_t *c);
 void bt_dump_config(bt_config_t *c);
 bt_peer_t *bt_peer_info(const bt_config_t *c, int peer_id);
 /* find peer id using socket */
-int bt_peer_id(struct sockaddr_in peer_addr);
+// int bt_peer_id(struct sockaddr_in peer_addr);
+short bt_peer_id(struct sockaddr_in peer_addr);
 
 #endif /* _BT_PARSE_H_ */

@@ -58,14 +58,14 @@ def download_concurrent():
     print '['+getElapsedTime()+'ms]: Wait 1 seconds.'
     time.sleep(1)
     print '['+getElapsedTime()+'ms]: Trying to start ref_peer_concurrent_1'
-    cmd = './ref_peer_extra -p %s -c %s -f %s -m 4 -i 1 -x 1 -t 20 -d %s' % \
+    cmd = './ref_peer_extra -p %s -c %s -f %s -m 4 -i 1 -d %s' % \
           ('nodes_concurrent.map', 'A.chunks', 'C.chunks', '0')
     print cmd
     pRefPeer1 = Popen(cmd.split(' '))
     print '['+getElapsedTime()+'ms]: Wait 1 seconds.'
     time.sleep(1)
     print '['+getElapsedTime()+'ms]: Trying to start ref_peer_concurrent_2'
-    cmd = './ref_peer_extra -p %s -c %s -f %s -m 4 -i 2 -x 1 -t 20 -d %s' % \
+    cmd = './ref_peer_extra -p %s -c %s -f %s -m 4 -i 2 -d %s' % \
           ('nodes_concurrent.map', 'A.chunks', 'C.chunks', '0')
     print cmd
     pRefPeer2 = Popen(cmd.split(' '))

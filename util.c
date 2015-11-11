@@ -256,7 +256,6 @@ void update_connections(int peer_id, struct packet* incoming_packet){
 // completely delete previous chunk table and create new one
 struct Chunk* update_chunks(struct Chunk* chunks, int* chunk_count, struct packet* packet){
   unsigned short packet_length = ntohs(*(unsigned short*)((char*)packet+6));
-  printf("update_chunks: %hu\n", packet_length);
   int i=0;
   char* temp_hash = NULL;
   free(chunks);

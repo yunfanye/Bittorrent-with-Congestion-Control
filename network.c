@@ -19,7 +19,7 @@ void print_packet(struct packet* packet){
     binary2hex((uint8_t *)(&(packet->payload[i])), SHA1_HASH_SIZE, ascii_buf);
     printf("hash: %s\n", ascii_buf);
   }
-  printf("End printing packet....................................................................\n");
+  printf("End printing packet....................................................................\n\n");
 }
 
 void print_incoming_packet(struct packet* in_packet){
@@ -41,7 +41,7 @@ void print_incoming_packet(struct packet* in_packet){
     binary2hex((uint8_t*)(packet+i), SHA1_HASH_SIZE, ascii_buf);
     printf("hash: %s\n", ascii_buf);
   }
-  printf("End printing packet....................................................................\n");
+  printf("End printing packet....................................................................\n\n");
 }
 
 
@@ -249,11 +249,12 @@ void send_data_packets(){
   for(i = 0; i < retsize; i++) {
   	peer_id = upload_id_list[i];
     unsigned seq_number = get_tail_seq_number(peer_id);
-    printf("Send data packet, queue:%d, cwnd: %d\n", get_queue_size(peer_id), get_cwnd_size(peer_id));
     if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
       &&seq_number<=MAX_PACKET_PER_CHUNK){
       char data[MAX_PAYLOAD_SIZE];
+      printf("here\n");
       read_file(current_request->filename, data, MAX_PAYLOAD_SIZE, get_tail_seq_number(peer_id)*MAX_PAYLOAD_SIZE);
+      printf("here\n");
       struct packet* packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number, 0, NULL, NULL, NULL);
       /* Send GET */
       from = find_addr(peer_id);
@@ -263,5 +264,5 @@ void send_data_packets(){
       free(packet);
     }
   }
-	free(upload_id_list);
+  free(upload_id_list);
 }

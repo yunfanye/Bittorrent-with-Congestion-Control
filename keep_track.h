@@ -70,7 +70,7 @@ void clean_timeout();
 int get_queue_size(int peer_id);
 
 /* get the last transmitted packet */
-unsigned get_tail_seq_number(int peer_id);
+int get_tail_seq_number(int peer_id);
 
 /* return the list of peers regarding upload stream */
 int * get_upload_list(int * retsize);

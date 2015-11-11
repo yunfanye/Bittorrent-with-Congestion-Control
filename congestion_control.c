@@ -42,7 +42,10 @@ void window_timeout(int peer_id) {
 
 int get_cwnd_size(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
-	return cwnds[index];
+	if(peer_id!=-1){
+		return cwnds[index];
+	}
+	return -1;
 }
 
 void init_cwnd(int peer_id) {

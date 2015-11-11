@@ -322,12 +322,26 @@ struct packet_record * add_record(struct packet_record * root, unsigned seq, uns
 
 int get_queue_size(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
-	return sent_queue_size[index];
+	if(index!=-1){
+		return sent_queue_size[index];
+	}
+	return -1;
 }
 
-unsigned get_tail_seq_number(int peer_id){
+int get_tail_seq_number(int peer_id){
+	printf("asdkjl\n");
 	int index = get_upload_index_by_id(peer_id);
-	return sent_queue_tail[index]->seq;
+	printf("asdkjl: %d\n", index);
+	if(index!=-1){
+		struct sent_packet * tail = sent_queue_tail[index];
+		if(tail==NULL){
+			printf("sadhjkadhjlashd\n");
+			return -1;
+		}
+		printf("asdkjl: %d\n", index);
+		return sent_queue_tail[index]->seq;
+	}
+	return -1;
 }
 
 /* return the list of peers regarding upload stream */
