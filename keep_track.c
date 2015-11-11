@@ -208,9 +208,9 @@ unsigned get_timeout_seq(int peer_id) {
 	struct sent_packet * head = sent_queue_head[index];
 	unsigned seq;
 	if((milli_time() - head -> timestamp) > RTO) {
-		sent_queue_head[index] = head -> next;
+		/* retransmit, update time stamp */
+		head -> timestamp = milli_time();
 		seq = head -> seq;
-		free(head);
 		return seq;
 	}
 	else
