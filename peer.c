@@ -122,7 +122,7 @@ void process_inbound_udp(int sock) {
     	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
         printf("peer_id: %d, GET packet here\n", peer_id);
-		    if(start_upload(peer_id))    	
+		    if(start_upload(peer_id, get_chunk_id(chunk_hash, has_chunk_table)));
 		  	 	init_cwnd(peer_id);/* init cwnd */
     	}
     	break;
@@ -246,6 +246,16 @@ void peer_run(bt_config_t *config) {
   print_request(has_chunk_table);
   timeout.tv_sec = 0;
   timeout.tv_usec = 50 * 1000; /* 50 ms */
+
+  char read_buffer[MAX_LINE_LENGTH];
+  FILE* master_chunk_file = fopen(config->chunk_file, "r");
+  fgets(read_buffer, MAX_LINE_LENGTH, master_chunk_file);
+  fclose(master_chunk_file);
+  /* parse to get the path */
+  memset(master_data_file_name, 0, FILE_NAME_SIZE);
+  sscanf(read_buffer, "File:%s", master_data_file_name);
+  printf("master_data_file_name: %s\n", master_data_file_name);
+
   while (1) {
     int nfds;
     FD_SET(STDIN_FILENO, &readfds);
