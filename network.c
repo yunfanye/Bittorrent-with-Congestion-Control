@@ -249,7 +249,6 @@ void send_data_packets(){
   int peer_id;
   for(i = 0; i < retsize; i++) {
   	peer_id = upload_id_list[i];
-  	printf("\npeer_id: %d, queue: %d, cwnd: %d, tail: %d\n", peer_id, get_queue_size(peer_id), get_cwnd_size(peer_id), get_tail_seq_number(peer_id));
     unsigned seq_number = get_tail_seq_number(peer_id);
     if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
       &&seq_number<=MAX_PACKET_PER_CHUNK){
