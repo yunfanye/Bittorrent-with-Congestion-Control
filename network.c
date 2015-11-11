@@ -251,15 +251,16 @@ void send_data_packets(){
   for(i = 0; i < retsize; i++) {
   	peer_id = upload_id_list[i];
     unsigned seq_number = get_tail_seq_number(peer_id);
-    printf("id %d, queue %d, cwnd %d, seq: %d\n", peer_id, get_queue_size(peer_id), get_cwnd_size(peer_id), seq_number);
+    //printf("id %d, queue %d, cwnd %d, seq: %d\n", peer_id, get_queue_size(peer_id), get_cwnd_size(peer_id), seq_number);
     if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
       && seq_number <= MAX_PACKET_PER_CHUNK){
-      printf("begin sending: name %s\n", current_request->filename);
+      printf("begin sending: name %s\n", master_data_file_name);
       char data[MAX_PAYLOAD_SIZE];
       read_file(master_data_file_name, data, MAX_PAYLOAD_SIZE, 
       	upload_chunk_id_list[i] * BT_CHUNK_SIZE + seq_number * MAX_PAYLOAD_SIZE);
       printf("after reading file\n");
       struct packet* packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number, 0, NULL, NULL, NULL);
+      print_packet(packet);
       /* Send GET */
       printf("sent data pack to peer %d\n", peer_id);
       from = find_addr(peer_id);

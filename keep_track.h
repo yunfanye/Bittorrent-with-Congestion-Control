@@ -45,7 +45,7 @@ unsigned track_ack_packet(int index, unsigned seq);
 uint8_t * get_chunk_hash(int peer_id);
 
 /* initialize a new upload stream, return 0 on error */
-int start_upload(int peer_id, int chunk_id)
+int start_upload(int peer_id, int chunk_id);
 
 /* close a upload stream, may because it is finished or closed by peer */
 int abort_upload(int peer_id);
@@ -58,6 +58,9 @@ int wait_ack(int peer_id, unsigned seq);
 
 /* receive a ACK packet, clean wait ack queue */
 int receive_ack(int peer_id, unsigned seq);
+
+/* return the list of responding chunk of each peer */
+int * get_upload_chunk_list(int * retsize);
 
 /* map id to index, used when controlling cwnd */
 int get_upload_index_by_id(int id);
