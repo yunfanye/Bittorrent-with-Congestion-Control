@@ -202,7 +202,7 @@ void save_data_packet(struct packet* in_packet, int chunk_id){
 int save_chunk(int chunk_id){
   char* filename = NULL;
   struct Chunk* chunk = &current_request->chunks[chunk_id];
-  if(chunk->received_byte_number == BT_CHUNK_SIZE){
+  if(chunk->received_byte_number == BT_CHUNK_SIZE&&chunk->state!=OWNED){
     chunk -> state = OWNED;
     // verify chunk
     uint8_t hash[SHA1_HASH_SIZE];
