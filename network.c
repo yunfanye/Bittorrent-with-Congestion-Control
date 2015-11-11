@@ -165,6 +165,7 @@ void send_packet(struct packet packet, int socket, struct sockaddr* dst_addr){
 void send_whohas_packet_to_all(struct packet* packets, int packet_count, int socket, struct sockaddr* dst_addr){
   int i = 0;
   for(i=0;i<packet_count;i++){
+  	print_packet(&packets[i]);
     send_packet(packets[i], socket, dst_addr);
   }
 }

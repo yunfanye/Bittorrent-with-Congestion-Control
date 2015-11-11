@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 use strict;
 
 my $QUEUEMAX = 10;
