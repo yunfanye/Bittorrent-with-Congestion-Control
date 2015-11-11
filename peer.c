@@ -88,7 +88,7 @@ void process_inbound_udp(int sock) {
       }
       break;
     case IHAVE:
-    	printf("GET IHAVE: %d\n", peer_id);
+    	printf("\nGET IHAVE: %d\n", peer_id);
     	/* TODO conversion */
     	print_incoming_packet(incoming_packet);
       update_connections(peer_id, incoming_packet);
