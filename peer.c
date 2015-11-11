@@ -178,7 +178,7 @@ void process_inbound_udp(int sock) {
     case ACK:
     	/* TODO: move pointer */
       // print_incoming_packet(incoming_packet);
-    	printf("ack %d\n", ack_number);
+    	//printf("ack %d\n", ack_number);
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
     	break;
@@ -280,7 +280,7 @@ void peer_run(bt_config_t *config) {
 
     send_data_packets();
 		clean_upload_timeout();
-		dowload_peer_crash();
+		download_peer_crash();
     // Need to do whohas_flooding periodically
     // if(get_time_diff(&last_flood_whohas_time) > WHOHAS_FLOOD_INTERVAL_MS){
     //     whohas_flooding(current_request);

@@ -91,8 +91,8 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
       struct packet* packets = (struct packet*)malloc(sizeof(struct packet)* (*packet_count));
       memset(packets, 0, sizeof(struct packet)* (*packet_count));
       if(unfinished_chunk_count==0){
-        packets = NULL;
         free_packets(packets, *packet_count);
+        packets = NULL;
       }
       int current_chunk_index = 0;
       for(j=0;j<(*packet_count);j++){

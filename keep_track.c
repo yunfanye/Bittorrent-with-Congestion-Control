@@ -14,7 +14,7 @@
 /* abort downloading timeout coefficient: when acting as a receiver,
  * peer may crash or pipe may break; thus, the download stream should be 
  * aborted when a significant time passes */
-#define ABORT_COEFF		4
+#define ABORT_COEFF		6
 
 #define ABS(x) ((x)>=(0)?(x):(-x))
 /* no valid identity can be 0 */
@@ -32,8 +32,8 @@ static uint8_t ** download_chunk_map;
 int * upload_id_map;
 static int * upload_chunk_id_map; 
 static int max_conns;
-static unsigned * upload_last_time;
-static unsigned * download_last_time;
+static unsigned long * upload_last_time;
+static unsigned long * download_last_time;
 /* fast retransmission */
 static unsigned * last_ack_table;
 static unsigned * dup_ack_count;
@@ -62,9 +62,10 @@ int clean_download_timeout(uint8_t * hash) {
 	for(i = 0; i < max_conns; i++) {
 		if(download_id_map[i] != ID_NULL && (now_time - download_last_time[i]) > 
 			ABORT_COEFF * RTO) {
+			printf("\nPEER CRASH!! %lu, %lu\n", now_time, download_last_time[i]);
 			id = download_id_map[i];
-			abort_download(download_id_map[i]);
 			memcpy(hash, download_chunk_map[i], SHA1_HASH_SIZE);
+			abort_download(download_id_map[i]);			
 			return id;
 		}
 	}
@@ -96,8 +97,8 @@ int init_tracker(int max) {
 	upload_id_map = malloc(max * sizeof(int));
 	upload_chunk_id_map = malloc(max * sizeof(int));
 	download_chunk_map = malloc(max * sizeof(uint8_t *));
-	download_last_time = malloc(max * sizeof(unsigned));
-	upload_last_time = malloc(max * sizeof(unsigned));
+	download_last_time = malloc(max * sizeof(unsigned long));
+	upload_last_time = malloc(max * sizeof(unsigned long));
 	sent_queue_size = malloc(max * sizeof(int));
 	last_ack_table = malloc(max * sizeof(unsigned));
 	dup_ack_count = malloc(max * sizeof(unsigned));
@@ -109,10 +110,10 @@ int init_tracker(int max) {
 	memset(last_acked_record, 0, max * sizeof(struct packet_record *));
 	memset(download_id_map, 0, max * sizeof(int));
 	memset(upload_id_map, 0, max * sizeof(int));
-	/* set network parameters initial estimation 1s */
-	RTT = 800;
-	deviation = 200;
-	RTO = 1600;
+	/* set network parameters initial estimation 800ms */
+	RTT = 800 * 1000;
+	deviation = 200 * 1000;
+	RTO = 1600 * 1000;
 	return 1;
 }
 
@@ -172,7 +173,6 @@ int start_download(int peer_id, uint8_t * chunk_hash) {
 			download_last_time[i] = milli_time();
 			memcpy(download_chunk_map[i], chunk_hash, SHA1_HASH_SIZE);
 			/* seq will start at 1, so add a root node to indicate this fact */
-			printf("to keep track when starting download\n");
 			track_data_packet(peer_id, 0, 1);
 			return 1;
 		}
@@ -222,7 +222,7 @@ unsigned get_timeout_seq(int peer_id) {
 	if((milli_time() - head -> timestamp) > RTO) {		
 		/* retransmit, update time stamp */
 		seq = head -> seq;
-		printf("\npeer %d, seq %d TIME OUT!!!! current %lu, stamp %lu\n", peer_id, seq, milli_time(), head -> timestamp);
+		//printf("\npeer %d, seq %d TIME OUT!!!! current %lu, stamp %lu\n", peer_id, seq, milli_time(), head -> timestamp);
 		head -> timestamp = milli_time();
 		return seq;
 	}

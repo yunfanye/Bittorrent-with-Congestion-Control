@@ -107,7 +107,7 @@ void free_request(struct Request* p){
 unsigned long milli_time() {
 	struct timeval time;
 	gettimeofday(&time, NULL);
-	return time.tv_sec * 1000 + time.tv_usec;
+	return time.tv_sec * 1000000 + time.tv_usec;
 }
 
 uint8_t* pick_a_chunk(struct packet* packet, struct Chunk** chunk_pointer){
@@ -273,11 +273,11 @@ void free_connection(struct connection* p){
 void download_peer_crash(){
   uint8_t hash[SHA1_HASH_SIZE];
   int peer_id = clean_download_timeout(hash);
-  if(peer_id<=0){
+  if(peer_id<=0 || connections == NULL || current_request == NULL){
     return;
   }
   int i=0;
-  for(i=0;i<current_request->chunk_number;i++){
+  for(i=0;i < current_request->chunk_number; i++){
     if(memcmp(hash, current_request->chunks[i].hash, SHA1_HASH_SIZE) == 0){
       printf("sadljkhas\n");
       current_request->chunks[i].state = NOT_STARTED;
