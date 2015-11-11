@@ -246,8 +246,11 @@ void send_data_packets(){
   struct sockaddr_in* from;
   while(temp){
     int peer_id = temp->peer_id;
-    if(in_window(peer_id)){
-      struct packet* packet = make_packet(DATA, NULL, data, data_size, seq_number, 0, NULL, NULL, NULL);
+    if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
+      &&get_tail_seq_number(peer_id)<=MAX_PACKET_PER_CHUNK){
+      char data[MAX_PAYLOAD_SIZE];
+      read_file(current_request->filename, data, MAX_PAYLOAD_SIZE, get_tail_seq_number(peer_id)*MAX_PAYLOAD_SIZE);
+      struct packet* packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number, 0, NULL, NULL, NULL);
       /* Send GET */
       from = find_addr(peer_id);
       send_packet(*packet, sock, (struct sockaddr*)from);
