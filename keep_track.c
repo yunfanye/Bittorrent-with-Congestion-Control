@@ -196,6 +196,7 @@ int start_upload(int peer_id, int chunk_id) {
 			upload_id_map[i] = peer_id;
 			upload_last_time[i] = milli_time();
 			upload_chunk_id_map[i] = chunk_id;
+			sent_queue_size[i] = 0;
 			last_ack_table[i] = 0;
 			dup_ack_count[i] = 0;
 			return 1;
