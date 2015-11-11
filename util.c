@@ -16,6 +16,9 @@ int find_chunk(uint8_t* hash){
 }
 
 int get_chunk_id(uint8_t* hash, struct Request* chunk_table){
+  if(chunk_table==NULL){
+    return -1;
+  }
   int i = 0;
   for(i = 0; i < chunk_table->chunk_number; i++){
     if (memcmp(hash, chunk_table->chunks[i].hash, SHA1_HASH_SIZE) == 0) {
@@ -262,10 +265,7 @@ void update_connections(int peer_id, struct packet* incoming_packet){
 }
 
 void free_connection(struct connection* p){
-  int i=0;
-  for(i=0;i<p->chunk_count;i++){
-    free(&(p->chunks[i]));
-  }
+  free(p->chunks);
   free(p);
 }
 
@@ -279,15 +279,18 @@ void download_peer_crash(){
   int i=0;
   for(i=0;i<current_request->chunk_number;i++){
     if(memcmp(hash, current_request->chunks[i].hash, SHA1_HASH_SIZE) == 0){
+      printf("sadljkhas\n");
       current_request->chunks[i].state = NOT_STARTED;
       if(current_request->chunks[i].data!=NULL){
         free(current_request->chunks[i].data);
       }
+      printf("sadljkhas11\n");
       current_request->chunks[i].received_seq_number = 0;
       current_request->chunks[i].received_byte_number = 0;
       break;
     }
   }
+  printf("sadljkhas11\n");
   struct connection* temp = connections;
   if(temp->peer_id==peer_id){
     struct connection* p = connections;
@@ -295,7 +298,8 @@ void download_peer_crash(){
     free_connection(p);
     return;
   }
-  while(temp->next){
+  printf("sadljkhas112222\n");
+  while(temp->next&&temp){
     if(temp->next->peer_id==peer_id){
       struct connection* p = temp->next;
       temp->next = temp->next->next;

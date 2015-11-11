@@ -129,6 +129,9 @@ void process_inbound_udp(int sock) {
     	/* get the corresponding chunk of the peer */
     	chunk_hash = get_chunk_hash(peer_id);
       chunk_id = get_chunk_id(chunk_hash, current_request);
+      if(chunk_id<0){
+        return;
+      }
       /* keep track of the packet */
       last_continuous_seq = track_data_packet(peer_id, seq_number, data_length);
       // ignore historical packets
