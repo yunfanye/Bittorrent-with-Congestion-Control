@@ -259,6 +259,7 @@ int wait_ack(int peer_id, unsigned seq, int timeout) {
 		sent_queue_tail[index] = tail;
 	}
 	/* size incr */	
+	printf("wait_ack\n");
 	sent_queue_size[index]++;
 	return 1;
 }
@@ -301,6 +302,7 @@ int receive_ack(int peer_id, unsigned seq) {
 	/* TODO: three dup acks should invoke fast retransmission */
 	sent_queue_head[index] = head;
 	/* record size */
+	printf("receive_ack: %d\n", count);
 	sent_queue_size[index] -= count;
 	return count;
 }
