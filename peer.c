@@ -246,6 +246,16 @@ void peer_run(bt_config_t *config) {
   print_request(has_chunk_table);
   timeout.tv_sec = 0;
   timeout.tv_usec = 50 * 1000; /* 50 ms */
+
+  char read_buffer[MAX_LINE_LENGTH];
+  FILE* master_chunk_file = fopen(config->chunk_file, "r");
+  fgets(read_buffer, MAX_LINE_LENGTH, master_chunk_file);
+  fclose(master_chunk_file);
+  /* parse to get the path */
+  memset(master_data_file_name, 0, FILE_NAME_SIZE);
+  sscanf(read_buffer, "File:%s", master_data_file_name);
+  printf("master_data_file_name: %s\n", master_data_file_name);
+
   while (1) {
     int nfds;
     FD_SET(STDIN_FILENO, &readfds);
