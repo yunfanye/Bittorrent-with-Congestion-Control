@@ -209,7 +209,11 @@ int start_upload(int peer_id, int chunk_id) {
 int abort_upload(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
 	upload_id_map[index] = ID_NULL;
-	/* TODO: release resource */
+	/* TODO: crashed peer release resource */
+	if(sent_queue_tail[index] != NULL)
+		free(sent_queue_tail[index]);
+	sent_queue_tail[index] = NULL;
+	sent_queue_head[index] = NULL;
 	return 1;
 }
 

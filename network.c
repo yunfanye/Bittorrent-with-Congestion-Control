@@ -269,6 +269,7 @@ void send_data_packets() {
   int peer_id;
   unsigned seq_number;
   int canSend;
+  int timeout;
   for(i = 0; i < retsize; i++) {
   	peer_id = upload_id_list[i];
   	canSend = 1;
@@ -279,7 +280,7 @@ void send_data_packets() {
     	if(get_queue_size(peer_id) < get_cwnd_size(peer_id)) {
 				seq_number = get_tail_seq_number(peer_id);
 				/* transmit */
-				wait_ack(peer_id, seq_number + 1, 0);
+				timeout = 0;
 			}
     	else{
     		canSend = 0;
@@ -289,7 +290,7 @@ void send_data_packets() {
     	/* retransmit */
       printf("retransmit\n");
     	seq_number -= 1; /* offset by 1 */
-    	wait_ack(peer_id, seq_number + 1, 1);
+    	timeout = 1;
     }
     printf("seq: %d, canSend: %d, queue: %d, cwnd: %d\n", seq_number, canSend, get_queue_size(peer_id), get_cwnd_size(peer_id));
    	/* send one packet one time to ensure fairness */
@@ -313,6 +314,7 @@ void send_data_packets() {
 		  /* Send DATA */
 		  from = find_addr(peer_id);
 		  send_packet(*packet, sock, (struct sockaddr*)from);
+		  wait_ack(peer_id, seq_number + 1, timeout);
 		  free(packet->header);
 		  free(packet);
     }
