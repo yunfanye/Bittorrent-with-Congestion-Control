@@ -70,7 +70,6 @@ int bt_peer_id(struct sockaddr_in peer_addr)
   bt_peer_t *p;
   for (p = config.peers; p != NULL; p = p->next) {
   	/* port and ip addr match */
-  	printf("port: %d, port recv: %d\n", p -> addr.sin_port, peer_addr.sin_port);
     if (p -> addr.sin_port == peer_addr.sin_port &&
     	p -> addr.sin_addr.s_addr == peer_addr.sin_addr.s_addr) {
       return p -> id;
