@@ -51,7 +51,6 @@ void print_incoming_packet(struct packet* in_packet){
 
 void fill_header(char** packet_header, unsigned char packet_type, unsigned short packet_length, unsigned int seq_number, unsigned int ack_number){
   *packet_header = (char*)malloc(16);
-  memset(packet_header, 0, 16);
   unsigned short magic_number = MAGIC_NUMBER;
   unsigned char version_number = VERSION_NUMBER;
   short header_length = HEADER_LENGTH;
@@ -93,7 +92,7 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
       memset(packets, 0, sizeof(struct packet)* (*packet_count));
       if(unfinished_chunk_count==0){
         packets = NULL;
-        free(packets);
+        free_packets(packets, *packet_count);
       }
       int current_chunk_index = 0;
       for(j=0;j<(*packet_count);j++){
@@ -129,7 +128,7 @@ struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, cha
         }
       }
       if(count_ihave==0){
-        free(packet);
+        free_packet(packet);
         packet = NULL;
       }
       else{
@@ -199,11 +198,21 @@ void whohas_flooding(struct Request* request){
         }
     }
   }
+  free_packets(packets, packet_count);
+  return;
+}
+
+void free_packet(struct packet* packet){
+  free(packet->header);
+  free(packet);
+}
+
+void free_packets(struct packet* packets, int packet_count){
+  int i=0;
   for(i=0;i<packet_count;i++){
     free(packets[i].header);
   }
   free(packets);
-  return;
 }
 
 // void send_packet_with_window_constraint(int peer_id, struct packet packet, int socket, struct sockaddr* dst_addr){
@@ -290,8 +299,7 @@ void send_data_packets() {
 		  from = find_addr(peer_id);
 		  send_packet(*packet, sock, (struct sockaddr*)from);
 		  wait_ack(peer_id, seq_number + 1);
-		  free(packet->header);
-		  free(packet);
+		  free_packet(packet);
     }
   }
   free(upload_id_list);

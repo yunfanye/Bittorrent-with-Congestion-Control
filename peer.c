@@ -84,7 +84,7 @@ void process_inbound_udp(int sock) {
       if(packet!=NULL){
         print_packet(packet);
         send_packet(*packet, sock, (struct sockaddr*)&from);
-        free(packet);
+        free_packet(packet);
       }
       break;
     case IHAVE:
@@ -107,7 +107,7 @@ void process_inbound_udp(int sock) {
             /* Send GET */
             send_packet(*packet, sock, (struct sockaddr*)&from);
             /* TODO: fix memory leakage */
-            free(packet);
+            free_packet(packet);
           }
           printf("end downloading\n");
         }
@@ -140,7 +140,7 @@ void process_inbound_udp(int sock) {
       		printf("DOWNLOAD TIMOUT, SEND DUP ACKS!\n");
           packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);
-          free(packet);
+          free_packet(packet);
           /* discard the packet as it is very difficult to save the reordered
            * packet due to the stupid protocol */
           break;
@@ -149,7 +149,7 @@ void process_inbound_udp(int sock) {
       else{
           packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);
-          free(packet);
+          free_packet(packet);
           // save data to chunk until chunk is filled
           // each chunk has 512*1024 bytes, each packet has 1500-16 max bytes data
           save_data_packet(incoming_packet ,chunk_id);
@@ -165,7 +165,7 @@ void process_inbound_udp(int sock) {
               if(start_download(peer_id, chunk_hash)){
                 packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
                 send_packet(*packet, sock, (struct sockaddr*)&from);
-                free(packet);
+                free_packet(packet);
               }
             }
           }

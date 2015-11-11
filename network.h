@@ -23,6 +23,8 @@ void print_packet(struct packet* packet);
 void print_incoming_packet(struct packet* in_packet);
 
 void fill_header(char** packet_header, unsigned char packet_type, unsigned short packet_length, unsigned int seq_number, unsigned int ack_number);
+void free_packet(struct packet* packet);
+void free_packets(struct packet* packets, int packet_count);
 
 struct packet* make_packet(unsigned char packet_type, struct Chunk* p_chunk, char* data, int data_size, int seq_number, int ack_number, struct packet* packet_in, int* packet_count, struct Request* request);
 void send_packet(struct packet packet, int socket, struct sockaddr* dst_addr);
