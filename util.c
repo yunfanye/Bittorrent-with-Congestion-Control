@@ -139,7 +139,7 @@ int peer_contain_chunk(int peer_id, uint8_t* hash){
   struct connection* temp = connections;
   int i=0;
   while(temp){
-    if(temp->id==peer_id){
+    if(temp->peer_id==peer_id){
       for(i=0;i<temp->chunk_count;i++){
         if(memcmp(hash, temp->chunks[i].hash, SHA1_HASH_SIZE) == 0){
           return 1;
@@ -228,7 +228,7 @@ int all_chunk_finished(){
 void update_connections(int peer_id, struct packet* incoming_packet){
   if(connections==NULL){
     connections = (struct connection*)malloc(sizeof(struct connection));
-    connections->id = peer_id;
+    connections->peer_id = peer_id;
     connections->chunks = NULL;
     connections->chunks = update_chunks(connections->chunks, &(connections->chunk_count), incoming_packet);
     connections->next = NULL;
@@ -236,7 +236,7 @@ void update_connections(int peer_id, struct packet* incoming_packet){
   else{
     struct connection* temp = connections;
     while(temp){
-      if(temp->id==peer_id){
+      if(temp->peer_id==peer_id){
         // update peer's chunk table
         temp->chunks = update_chunks(temp->chunks, &(temp->chunk_count), incoming_packet);
         return;
@@ -245,7 +245,7 @@ void update_connections(int peer_id, struct packet* incoming_packet){
     }
     // connections does not contain peer
     temp = (struct connection*)malloc(sizeof(struct connection));
-    temp->id = peer_id;
+    temp->peer_id = peer_id;
     temp->chunks = NULL;
     temp->chunks = update_chunks(temp->chunks, &(temp->chunk_count), incoming_packet);
     temp->next = connections;
