@@ -68,7 +68,6 @@ struct connection{
 	struct connection* next;
 
 	// unused fields
-	int id;
 	struct sockaddr_in addr;
 
 	int ssthresh;
