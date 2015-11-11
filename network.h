@@ -29,5 +29,6 @@ void send_packet(struct packet packet, int socket, struct sockaddr* dst_addr);
 void send_whohas_packet_to_all(struct packet* packets, int packet_count, int socket, struct sockaddr* dst_addr);
 void whohas_flooding(struct Request* request);
 int validate_packet(unsigned short magic_number, unsigned char version_number, unsigned char packet_type);
+void send_data_packets();
 
 #endif

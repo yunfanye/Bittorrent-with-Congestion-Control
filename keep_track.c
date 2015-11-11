@@ -335,3 +335,8 @@ int get_queue_size(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
 	return sent_queue_size[index];
 }
+
+unsigned get_tail_seq_number(int peer_id){
+	int index = get_upload_index_by_id(peer_id);
+	return sent_queue_tail[index]->seq;
+}

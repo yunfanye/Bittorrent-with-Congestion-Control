@@ -25,6 +25,7 @@
 #define HEADER_LENGTH 16
 #define MAX_PACKET_SIZE 1500
 #define MAX_PAYLOAD_SIZE 1484
+#define MAX_PACKET_PER_CHUNK 354
 
 #define CHUNK_NUMBER_AND_PADDING_SIZE 4
 
@@ -61,6 +62,7 @@ struct packet{
 struct connection{
 	// used fields
 	int peer_id;
+
 	int chunk_count;
 	struct Chunk* chunks;
 	struct connection* next;

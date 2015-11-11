@@ -130,7 +130,7 @@ void process_inbound_udp(int sock) {
       chunk_id = get_chunk_id(chunk_hash, current_request);
       /* keep track of the packet */
       last_continuous_seq = track_data_packet(peer_id, seq_number, data_length);
-      printf("last seq: %d, seq: %d\n", seq_number);
+      printf("last seq: %d, seq: %d\n", last_continuous_seq, seq_number);
       // ignore historical packets
       if(seq_number<last_continuous_seq){
           return;
