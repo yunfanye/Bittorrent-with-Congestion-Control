@@ -15,9 +15,11 @@ void print_packet(struct packet* packet){
   printf("seq_number: %u, ack_number: %u\n", seq_number, ack_number);
   unsigned short i = 0;
   char ascii_buf[CHUNK_HASH_SIZE];
-  for(i=4;i<in_packet_length-header_length;i=i+20){
-    binary2hex((uint8_t *)(&(packet->payload[i])), SHA1_HASH_SIZE, ascii_buf);
-    printf("hash: %s\n", ascii_buf);
+  if(packet_type!=DATA){
+    for(i=4;i<in_packet_length-header_length;i=i+20){
+      binary2hex((uint8_t *)(&(packet->payload[i])), SHA1_HASH_SIZE, ascii_buf);
+      printf("hash: %s\n", ascii_buf);
+    }
   }
   printf("End printing packet....................................................................\n\n");
 }
@@ -37,9 +39,11 @@ void print_incoming_packet(struct packet* in_packet){
   printf("seq_number: %u, ack_number: %u\n", seq_number, ack_number);
   unsigned short i = 0;
   char ascii_buf[CHUNK_HASH_SIZE];
-  for(i=20;i<in_packet_length;i=i+20){
-    binary2hex((uint8_t*)(packet+i), SHA1_HASH_SIZE, ascii_buf);
-    printf("hash: %s\n", ascii_buf);
+  if(packet_type!=DATA){
+    for(i=20;i<in_packet_length;i=i+20){
+      binary2hex((uint8_t*)(packet+i), SHA1_HASH_SIZE, ascii_buf);
+      printf("hash: %s\n", ascii_buf);
+    }
   }
   printf("End printing packet....................................................................\n\n");
 }
