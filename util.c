@@ -182,8 +182,8 @@ void save_data_packet(struct packet* in_packet, int chunk_id){
     chunk->data = malloc(sizeof(char) * BT_CHUNK_SIZE);
   }
   chunk->received_seq_number = seq_number;
+  memcpy(chunk->data + chunk->received_byte_number, ((char *)in_packet + header_length), data_size);
   chunk->received_byte_number = chunk->received_byte_number + data_size;
-  memcpy(chunk->data + chunk->received_byte_number, in_packet->payload, data_size);
 }
 
 int save_chunk(int chunk_id){
@@ -196,11 +196,19 @@ int save_chunk(int chunk_id){
     shahash((uint8_t*)chunk->data, BT_CHUNK_SIZE, hash);
     // if chunk verify failed
     if (memcmp(hash, chunk->hash, SHA1_HASH_SIZE) != 0){
+      
+      char hash_buffer[SHA1_HASH_SIZE * 2 + 1];
+    	memset(hash_buffer, 0, SHA1_HASH_SIZE * 2 + 1);
+    	binary2hex(hash, SHA1_HASH_SIZE, hash_buffer);
+    	printf("Hash: %s\n", hash_buffer);
+    	
+    	printf("Verification failed!\n");
       chunk -> state = NOT_STARTED;
     }
     else{
       int offset = chunk->id * BT_CHUNK_SIZE;
       filename = current_request->filename;
+      printf("offset: %d\n", offset);
       write_file(filename, chunk->data, BT_CHUNK_SIZE, offset);
     }
     free(chunk->data);

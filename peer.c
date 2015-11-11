@@ -77,10 +77,11 @@ void process_inbound_udp(int sock) {
    * calculate when timeout */
   switch(packet_type){
     case WHOHAS:
-    printf("receive WHOHAS\n");
+    	printf("receive WHOHAS\n");
       // reply if it has any of the packets that the WHOHAS packet inquires
       // print_packet(incoming_packet);
       packet = make_packet(IHAVE, NULL, NULL, 0, 0, 0, incoming_packet, NULL, NULL);
+      print_packet(packet);
       if(packet!=NULL){
         print_packet(packet);
         send_packet(*packet, sock, (struct sockaddr*)&from);
@@ -97,6 +98,7 @@ void process_inbound_udp(int sock) {
         // TODO: may need to update timestamp for the new current_request
         // pick a chunk and mark the chunk as RECEIVING
         chunk_hash = pick_a_chunk(incoming_packet, &p_chunk);
+        printf("picked a chunk %p\n", chunk_hash);
         if(chunk_hash!=NULL){
           /* add a transmission stream, i.e. associate the stream with peer */
           printf("start downloading\n");
@@ -112,7 +114,8 @@ void process_inbound_udp(int sock) {
         }
       }
       break;
-    case GET:   	
+    case GET:
+    	printf("\nGot GET Packet\n"); 	
       chunk_hash = (uint8_t*)((char*)incoming_packet + header_length);
       /* if find chunk != NULL*/
   		if(find_chunk(chunk_hash)==1){
