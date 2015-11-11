@@ -66,18 +66,13 @@ int get_upload_index_by_id(int id);
  * a long time, guessing that peer has trouble */
 void clean_timeout();
 
-<<<<<<< HEAD
-int get_queue_size(int peer_id);
-int get_tail_seq_number(int peer_id);
-=======
 /* get the number of outstanding packets */ 
 int get_queue_size(int peer_id);
 
 /* get the last transmitted packet */
-unsigned get_tail_seq_number(int peer_id);
+int get_tail_seq_number(int peer_id);
 
 /* return the list of peers regarding upload stream */
 int * get_upload_list(int * retsize);
 
->>>>>>> 751053d289a859d197ffa5233ebe63646a63bbd8
 #endif
