@@ -85,6 +85,7 @@ int init_tracker(int max) {
 	max_conns = max;
 	last_acked_record = malloc(max * sizeof(struct packet_record *));
 	sent_queue_head = malloc(max * sizeof(struct sent_packet *));
+	sent_queue_tail = malloc(max * sizeof(struct sent_packet *));
 	download_id_map = malloc(max * sizeof(int));
 	upload_id_map = malloc(max * sizeof(int));
 	download_chunk_map = malloc(max * sizeof(uint8_t *));
@@ -95,6 +96,7 @@ int init_tracker(int max) {
 		return 0;
 	memset(sent_queue_size, 0, max * sizeof(int));
 	memset(sent_queue_head, 0, max * sizeof(struct sent_packet *));
+	memset(sent_queue_tail, 0, max * sizeof(struct sent_packet *));
 	memset(last_acked_record, 0, max * sizeof(struct packet_record *));
 	memset(download_id_map, 0, max * sizeof(int));
 	memset(upload_id_map, 0, max * sizeof(int));
@@ -333,7 +335,7 @@ int get_tail_seq_number(int peer_id){
 	if(index!=-1&&sent_queue_tail!=NULL){
 		struct sent_packet * tail = sent_queue_tail[index];
 		if(tail==NULL){;
-			return -1;
+			return 0;
 		}
 		return sent_queue_tail[index]->seq;
 	}
