@@ -1,4 +1,5 @@
 #include "network.h"
+#include "keep_track.h"
 
 void print_packet(struct packet* packet){
   unsigned short magic_number = ntohs(*(unsigned short*)(packet->header));
@@ -240,15 +241,14 @@ struct sockaddr_in* find_addr(int peer_id){
 }
 
 void send_data_packets(){
-  struct connection* temp = connections;
+  int i;
   struct sockaddr_in* from;
-  printf("send_data_packets\n");
-  while(temp){
-    int peer_id = temp->peer_id;
-    printf("send_data_packets, while: %d\n", peer_id);
-    printf("here: %d\n", get_tail_seq_number(peer_id));
-    int seq_number = get_tail_seq_number(peer_id);
-    printf("here\n");
+  int retsize;
+  int * upload_id_list = get_upload_list(&retsize);
+  int peer_id;
+  for(i = 0; i < retsize; i++) {
+  	peer_id = upload_id_list[i];
+    unsigned seq_number = get_tail_seq_number(peer_id);
     if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
       &&seq_number<=MAX_PACKET_PER_CHUNK){
       char data[MAX_PAYLOAD_SIZE];
@@ -259,10 +259,10 @@ void send_data_packets(){
       /* Send GET */
       from = find_addr(peer_id);
       send_packet(*packet, sock, (struct sockaddr*)from);
+      wait_ack(peer_id, seq_number);
       free(packet->header);
       free(packet);
     }
-    temp = temp->next;
   }
-  printf("finish send_data_packets\n");
+  free(upload_id_list);
 }

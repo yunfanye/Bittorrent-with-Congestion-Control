@@ -93,6 +93,7 @@ int init_tracker(int max) {
 	sent_queue_size = malloc(max * sizeof(int));
 	if(download_chunk_map == NULL)
 		return 0;
+	memset(sent_queue_size, 0, max * sizeof(int));
 	memset(sent_queue_head, 0, max * sizeof(struct sent_packet *));
 	memset(last_acked_record, 0, max * sizeof(struct packet_record *));
 	memset(download_id_map, 0, max * sizeof(int));
@@ -208,9 +209,9 @@ unsigned get_timeout_seq(int peer_id) {
 	struct sent_packet * head = sent_queue_head[index];
 	unsigned seq;
 	if((milli_time() - head -> timestamp) > RTO) {
-		sent_queue_head[index] = head -> next;
+		/* retransmit, update time stamp */
+		head -> timestamp = milli_time();
 		seq = head -> seq;
-		free(head);
 		return seq;
 	}
 	else
@@ -353,4 +354,20 @@ int get_tail_seq_number(int peer_id){
 		return sent_queue_tail[index]->seq;
 	}
 	return -1;
+}
+
+/* return the list of peers regarding upload stream */
+int * get_upload_list(int * retsize) {
+	int i;
+	/* caller calls free */
+	int * result = malloc(max_conns * sizeof(int));
+	int size = 0;
+	for(i = 0; i < max_conns; i++) {
+		if(upload_id_map[i] != ID_NULL) {
+			result[size] = upload_id_map[i];
+			size++;
+		}
+	}
+	*retsize = size;
+	return result;
 }

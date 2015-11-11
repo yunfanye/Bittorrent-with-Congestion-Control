@@ -113,18 +113,19 @@ void process_inbound_udp(int sock) {
         }
       }
       break;
-    case GET:    	
+    case GET:   	
       chunk_hash = (uint8_t*)((char*)incoming_packet + header_length);
       /* if find chunk != NULL*/
   		if(find_chunk(chunk_hash)==1){
     	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
-        printf("GET packet here\n");
+        printf("peer_id: %d, GET packet here\n", peer_id);
 		    if(start_upload(peer_id))    	
 		  	 	init_cwnd(peer_id);/* init cwnd */
     	}
     	break;
     case DATA:
+    	printf("Got DATA packet!\n");
     	/* get the corresponding chunk of the peer */
     	chunk_hash = get_chunk_hash(peer_id);
       chunk_id = get_chunk_id(chunk_hash, current_request);
@@ -167,6 +168,7 @@ void process_inbound_udp(int sock) {
       }
     	break;
     case ACK:
+    	printf("Got ACK packet!\n");
     	/* TODO: move pointer */
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
@@ -208,6 +210,7 @@ void peer_run(bt_config_t *config) {
   struct sockaddr_in myaddr;
   fd_set readfds;
   struct user_iobuf *userbuf;
+  struct timeval timeout;
   chunkTable = NULL;
   if ((userbuf = create_userbuf()) == NULL) {
     perror("peer_run could not allocate userbuf");
@@ -237,11 +240,13 @@ void peer_run(bt_config_t *config) {
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   print_request(has_chunk_table);
+  timeout.tv_sec = 0;
+  timeout.tv_usec = 50 * 1000; /* 50 ms */
   while (1) {
     int nfds;
     FD_SET(STDIN_FILENO, &readfds);
     FD_SET(sock, &readfds);
-    nfds = select(sock+1, &readfds, NULL, NULL, NULL);
+    nfds = select(sock+1, &readfds, NULL, NULL, &timeout);
     if (nfds > 0) {
       if (FD_ISSET(sock, &readfds)) {
         process_inbound_udp(sock);
