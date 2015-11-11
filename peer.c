@@ -81,7 +81,6 @@ void process_inbound_udp(int sock) {
       // reply if it has any of the packets that the WHOHAS packet inquires
       // print_packet(incoming_packet);
       packet = make_packet(IHAVE, NULL, NULL, 0, 0, 0, incoming_packet, NULL, NULL);
-      print_packet(packet);
       if(packet!=NULL){
         print_packet(packet);
         send_packet(*packet, sock, (struct sockaddr*)&from);
