@@ -258,8 +258,8 @@ void peer_run(bt_config_t *config) {
 
   while (1) {
     int nfds;
-    timeout.tv_sec = 3;
-  	timeout.tv_usec = 0; /* 50 ms */
+    timeout.tv_sec = 0;
+  	timeout.tv_usec = 5000; /* 50 ms */
     FD_SET(STDIN_FILENO, &readfds);
     FD_SET(sock, &readfds);
     nfds = select(sock+1, &readfds, NULL, NULL, &timeout);   
