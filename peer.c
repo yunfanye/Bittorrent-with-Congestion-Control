@@ -173,6 +173,7 @@ void process_inbound_udp(int sock) {
     	printf("Got ACK packet!\n");
     	print_incoming_packet(incoming_packet);
     	/* TODO: move pointer */
+      print_incoming_packet(incoming_packet);
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
     	break;
@@ -245,7 +246,6 @@ void peer_run(bt_config_t *config) {
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   print_request(has_chunk_table);
-
 
   char read_buffer[MAX_LINE_LENGTH];
   FILE* master_chunk_file = fopen(config->chunk_file, "r");
