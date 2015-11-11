@@ -276,6 +276,7 @@ int receive_ack(int peer_id, unsigned seq) {
 		if(head -> seq == seq)
 			infer_RTT(head -> timestamp);
 		tmp = head;
+		printf("%d\n", head->seq);
 		head = head -> next;
 		if(head != NULL)
 			free(tmp);
