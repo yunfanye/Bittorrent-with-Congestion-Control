@@ -274,6 +274,7 @@ void send_data_packets() {
   	canSend = 1;
     /* if timeout send timeout packet first */
     if ((seq_number = get_timeout_seq(peer_id)) == 0) {
+      printf("here send_data_packets: %d\n", seq_number);
     	/* if not timout, check window size */
     	if(get_queue_size(peer_id) < get_cwnd_size(peer_id)) {
 				seq_number = get_tail_seq_number(peer_id);
