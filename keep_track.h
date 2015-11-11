@@ -67,7 +67,10 @@ int get_upload_index_by_id(int id);
 
 /* clean timeout connection. abort connections that have no response for 
  * a long time, guessing that peer has trouble */
-void clean_timeout();
+int clean_upload_timeout(); 
+
+/* hash is the hash of chunk is receiving */
+int clean_download_timeout(uint8_t * hash);
 
 /* get the number of outstanding packets */ 
 int get_queue_size(int peer_id);
