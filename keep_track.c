@@ -211,7 +211,7 @@ int abort_upload(int peer_id) {
 /* return the first timeout seq, 0 if no timeout */
 unsigned get_timeout_seq(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
-	printf("get timeout: %d\n", peer_id);
+	// printf("get timeout: %d\n", peer_id);
 	struct sent_packet * head = sent_queue_head[index];
 	unsigned seq;
 	if(head == NULL)
