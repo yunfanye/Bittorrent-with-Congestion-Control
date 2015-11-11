@@ -265,7 +265,6 @@ int receive_ack(int peer_id, unsigned seq) {
 	sent_queue_head[index] = head;
 	/* record size */
 	sent_queue_size[index] -= count;
-	printf("receive_ack: %d, %u, %p\n", count, seq, head);
 	return count;
 }
 
