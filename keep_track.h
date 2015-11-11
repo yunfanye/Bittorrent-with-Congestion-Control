@@ -45,7 +45,7 @@ unsigned track_ack_packet(int index, unsigned seq);
 uint8_t * get_chunk_hash(int peer_id);
 
 /* initialize a new upload stream, return 0 on error */
-int start_upload(int peer_id);
+int start_upload(int peer_id, int chunk_id)
 
 /* close a upload stream, may because it is finished or closed by peer */
 int abort_upload(int peer_id);

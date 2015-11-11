@@ -29,6 +29,7 @@ static struct sent_packet ** sent_queue_head, ** sent_queue_tail;
 static int * download_id_map;
 static uint8_t ** download_chunk_map; 
 int * upload_id_map;
+static int * upload_chunk_id_map; 
 static int max_conns;
 static unsigned * upload_last_time;
 static unsigned * download_last_time;
@@ -88,6 +89,7 @@ int init_tracker(int max) {
 	sent_queue_tail = malloc(max * sizeof(struct sent_packet *));
 	download_id_map = malloc(max * sizeof(int));
 	upload_id_map = malloc(max * sizeof(int));
+	upload_chunk_id_map = malloc(max * sizeof(int));
 	download_chunk_map = malloc(max * sizeof(uint8_t *));
 	download_last_time = malloc(max * sizeof(unsigned));
 	upload_last_time = malloc(max * sizeof(unsigned));
@@ -176,12 +178,13 @@ int abort_download(int peer_id) {
 	return 1;
 }
 
-int start_upload(int peer_id) {
+int start_upload(int peer_id, int chunk_id) {
 	int i;
 	for(i = 0; i < max_conns; i++) {
 		if(upload_id_map[i] == ID_NULL) {
 			upload_id_map[i] = peer_id;
 			upload_last_time[i] = milli_time();
+			upload_chunk_id_map[i] = chunk_id;
 			return 1;
 		}
 	}
