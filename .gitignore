@@ -5,3 +5,4 @@ make-chunks
 test_debug
 test_input_buffer
 *.pl
+hupsim.pl
