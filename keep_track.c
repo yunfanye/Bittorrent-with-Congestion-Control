@@ -55,7 +55,7 @@ struct packet_record * add_record(struct packet_record * root, unsigned seq, uns
 
 /* clean timeout connection. abort connections that have no interaction for
  * a long time, guessing that peer has trouble */
-int clean_download_timeout() {
+int clean_download_timeout(uint8_t * hash) {
 	int i;
 	unsigned long now_time = milli_time();
 	int id;
@@ -63,7 +63,8 @@ int clean_download_timeout() {
 		if(download_id_map[i] != ID_NULL && (now_time - download_last_time[i]) > 
 			ABORT_COEFF * RTO) {
 			id = download_id_map[i];
-			abort_download(download_id_map[i]);		
+			abort_download(download_id_map[i]);
+			memcpy(hash, download_chunk_map[i], SHA1_HASH_SIZE);
 			return id;
 		}
 	}
@@ -210,12 +211,16 @@ int abort_upload(int peer_id) {
 /* return the first timeout seq, 0 if no timeout */
 unsigned get_timeout_seq(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
+	printf("get timeout: %d\n", peer_id);
 	struct sent_packet * head = sent_queue_head[index];
 	unsigned seq;
-	if((milli_time() - head -> timestamp) > RTO) {
+	if(head == NULL)
+		return 0;
+	if((milli_time() - head -> timestamp) > RTO) {		
 		/* retransmit, update time stamp */
 		head -> timestamp = milli_time();
 		seq = head -> seq;
+		printf("\npeer %d, seq %d TIME OUT!!!!\n", peer_id, seq);
 		return seq;
 	}
 	else
@@ -340,14 +345,19 @@ struct packet_record * add_record(struct packet_record * root, unsigned seq, uns
 		root -> length = len;
 		return root;
 	}
-	/* 1 -> 1000 (root) -> seq -> 3000*/
+
 	while(root -> next != NULL && root -> next -> seq < seq)
 		root = root -> next;
-	new_node = malloc(sizeof(struct packet_record));
-	new_node -> seq = seq;
-	new_node -> length = len;
-	new_node -> next = root -> next;
-	root -> next =  new_node;
+	/* don't add reordered packet due to stupid protocol, but keep this structure
+	 * to ensure extendibility, in order packet has seq 1 greater than previous 
+	 * one */
+	if(root -> next -> seq + 1 == seq) {
+		new_node = malloc(sizeof(struct packet_record));
+		new_node -> seq = seq;
+		new_node -> length = len;
+		new_node -> next = root -> next;
+		root -> next = new_node;
+	}
 	return saved;
 }
 

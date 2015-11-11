@@ -245,42 +245,47 @@ struct sockaddr_in* find_addr(int peer_id){
   return NULL;
 }
 
-void send_data_packets(){
+void send_data_packets() {
   int i;
   struct sockaddr_in* from;
   int retsize, chunk_size;
   int * upload_id_list = get_upload_list(&retsize);
   int * upload_chunk_id_list = get_upload_chunk_list(&chunk_size);
   int peer_id;
+  unsigned seq_number;
   for(i = 0; i < retsize; i++) {
   	peer_id = upload_id_list[i];
-    unsigned seq_number = get_tail_seq_number(peer_id);   
-    if(get_queue_size(peer_id)<get_cwnd_size(peer_id)
-      && seq_number < MAX_PACKET_PER_CHUNK){
-      printf("id %d, queue %d, cwnd %d, seq: %d, chunk id %d\n", peer_id, get_queue_size(peer_id), get_cwnd_size(peer_id), seq_number, upload_chunk_id_list[i]);
-      char data[MAX_PAYLOAD_SIZE];
-      struct packet* packet;
-      if(seq_number==MAX_PACKET_PER_CHUNK-1){
-        int last_packet_size = BT_CHUNK_SIZE-MAX_PAYLOAD_SIZE*(MAX_PACKET_PER_CHUNK-1);
-        read_file(master_data_file_name, data, last_packet_size, 
-          upload_chunk_id_list[i] * BT_CHUNK_SIZE + seq_number * MAX_PAYLOAD_SIZE);
-        printf("after reading file\n");
-        packet = make_packet(DATA, NULL, data, last_packet_size, seq_number + 1, 0, NULL, NULL, NULL);
-        print_packet(packet);
-      }else{
-        read_file(master_data_file_name, data, MAX_PAYLOAD_SIZE, 
-          upload_chunk_id_list[i] * BT_CHUNK_SIZE + seq_number * MAX_PAYLOAD_SIZE);
-        printf("after reading file\n");
-        packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number + 1, 0, NULL, NULL, NULL);
-        print_packet(packet);
-      }
+  	seq_number = 0;   
+    /* if timeout send timeout packet first */
+    if ((seq_number = get_timeout_seq(peer_id)) == 0) {
+    	/* if not timout, check window size */
+    	if(get_queue_size(peer_id) < get_cwnd_size(peer_id)) {
+				seq_number = get_tail_seq_number(peer_id); 
+    	} 
+    }
+   	/* send one packet one time to ensure fairness */
+    if(seq_number > 0 && seq_number < MAX_PACKET_PER_CHUNK) {
+		  char data[MAX_PAYLOAD_SIZE];
+		  struct packet* packet;
+		  if(seq_number==MAX_PACKET_PER_CHUNK-1){
+		    int last_packet_size = BT_CHUNK_SIZE-MAX_PAYLOAD_SIZE*(MAX_PACKET_PER_CHUNK-1);
+		    read_file(master_data_file_name, data, last_packet_size, 
+		      upload_chunk_id_list[i] * BT_CHUNK_SIZE + seq_number * MAX_PAYLOAD_SIZE);
+		    packet = make_packet(DATA, NULL, data, last_packet_size, seq_number + 1, 0, NULL, NULL, NULL);
+		    print_packet(packet);
+		  }else{
+		    read_file(master_data_file_name, data, MAX_PAYLOAD_SIZE, 
+		      upload_chunk_id_list[i] * BT_CHUNK_SIZE + seq_number * MAX_PAYLOAD_SIZE);
+		    packet = make_packet(DATA, NULL, data, MAX_PAYLOAD_SIZE, seq_number + 1, 0, NULL, NULL, NULL);
+		    print_packet(packet);
+		  }
 
-      /* Send GET */
-      from = find_addr(peer_id);
-      send_packet(*packet, sock, (struct sockaddr*)from);
-      wait_ack(peer_id, seq_number + 1);
-      free(packet->header);
-      free(packet);
+		  /* Send DATA */
+		  from = find_addr(peer_id);
+		  send_packet(*packet, sock, (struct sockaddr*)from);
+		  wait_ack(peer_id, seq_number + 1);
+		  free(packet->header);
+		  free(packet);
     }
   }
   free(upload_id_list);
