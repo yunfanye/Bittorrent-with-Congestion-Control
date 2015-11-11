@@ -97,7 +97,7 @@ void process_inbound_udp(int sock) {
         // TODO: may need to update timestamp for the new current_request
         // pick a chunk and mark the chunk as RECEIVING
         chunk_hash = pick_a_chunk(incoming_packet, &p_chunk);
-        printf("picked a chunk %p\n", chunk_hash);
+        printf("picked a chunk");print_hash(chunk_hash);
         if(chunk_hash!=NULL){
           /* add a transmission stream, i.e. associate the stream with peer */
           printf("start downloading\n");
@@ -164,6 +164,7 @@ void process_inbound_udp(int sock) {
             printf("download completed!\n");
             abort_download(peer_id);         
             chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
+            printf("picked a chunk");print_hash(chunk_hash);
             if(chunk_hash!=NULL){
               /* add a transmission stream, i.e. associate the stream with peer */
               if(start_download(peer_id, chunk_hash)){
@@ -182,6 +183,7 @@ void process_inbound_udp(int sock) {
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
       if(ack_number==MAX_PACKET_PER_CHUNK){
+        printf("all ACK received, finished UPLOAD\n");
         abort_upload(peer_id);
       }
     	break;

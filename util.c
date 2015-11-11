@@ -15,6 +15,16 @@ int find_chunk(uint8_t* hash){
   return -1;
 }
 
+void print_hash(uint8_t* hash){
+  if(hash==NULL){
+    printf("Hash is NULL\n");
+    return;
+  }
+  char hash_buffer[SHA1_HASH_SIZE * 2 + 1];
+  binary2hex(hash, SHA1_HASH_SIZE, hash_buffer);
+  printf("Hash: %s\n", hash_buffer);
+}
+
 int get_chunk_id(uint8_t* hash, struct Request* chunk_table){
   if(chunk_table==NULL){
     return -1;
