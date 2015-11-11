@@ -66,4 +66,10 @@ int get_upload_index_by_id(int id);
  * a long time, guessing that peer has trouble */
 void clean_timeout();
 
+/* get the number of outstanding packets */ 
+int get_queue_size(int peer_id);
+
+/* get the last transmitted packet */
+unsigned get_tail_seq_number(int peer_id);
+
 #endif

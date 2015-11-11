@@ -1,4 +1,5 @@
 #include "network.h"
+#include "keep_track.h"
 
 void print_packet(struct packet* packet){
   unsigned short magic_number = ntohs(*(unsigned short*)(packet->header));
