@@ -262,6 +262,72 @@ void update_connections(int peer_id, struct packet* incoming_packet){
   }
 }
 
+void free_connection(struct connection* p){
+  int i=0;
+  for(i=0;i<p->chunk_count;i++){
+    free(&(p->chunks[i]));
+  }
+  free(p);
+}
+
+// need to update current_request's chunk state and remove connections peer
+void download_peer_crash(){
+  uint8_t hash[SHA1_HASH_SIZE];
+  int peer_id = clean_download_timeout(hash);
+  if(peer_id<=0){
+    return;
+  }
+  int i=0;
+  for(i=0;i<current_request->chunk_number;i++){
+    if(memcmp(hash, current_request->chunks[i].hash, SHA1_HASH_SIZE) == 0){
+      current_request->chunks[i].state = NOT_STARTED;
+      if(current_request->chunks[i].data!=NULL){
+        free(current_request->chunks[i].data);
+      }
+      current_request->chunks[i].received_seq_number = 0;
+      current_request->chunks[i].received_byte_number = 0;
+      break;
+    }
+  }
+  struct connection* temp = connections;
+  if(temp->peer_id==peer_id){
+    struct connection* p = connections;
+    connections = connections->next;
+    free_connection(p);
+    return;
+  }
+  while(temp->next){
+    if(temp->next->peer_id==peer_id){
+      struct connection* p = temp->next;
+      temp->next = temp->next->next;
+      free_connection(p);
+      return;
+    }
+    temp = temp->next;
+  }
+  printf("Should not print this: did not find peer\n");
+}
+
+// remove from upload_id_list and upload_chunk_id_list
+void upload_peer_crash(){
+  int peer_id = clean_upload_timeout();
+  if(peer_id<=0){
+    return;
+  }
+  // may need to free following resources
+  // // upload_id_map
+  // // upload_last_time
+  // // upload_chunk_id_map
+  // for(i = 0; i < max_conns; i++) {
+  //   if(upload_id_map[i] == peer_id) {
+  //     upload_id_map[i] = ID_NULL;
+  //     upload_last_time[i] = milli_time();
+  //     upload_chunk_id_map = 0;
+  //     return;
+  //   }
+  // }
+}
+
 // completely delete previous chunk table and create new one
 struct Chunk* update_chunks(struct Chunk* chunks, int* chunk_count, struct packet* packet){
   unsigned short packet_length = ntohs(*(unsigned short*)((char*)packet+6));
