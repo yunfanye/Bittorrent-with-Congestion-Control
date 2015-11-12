@@ -70,7 +70,9 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
   char line[MAX_LINE_LENGTH];
   struct Chunk* p_chunk;
   f = fopen(chunk_file, "r");
-  assert(f != NULL);
+  if(f==NULL){
+    return NULL;
+  }
   while (fgets(line, MAX_LINE_LENGTH, f) != NULL) {
     if (line[0] == '#'){
       continue;
