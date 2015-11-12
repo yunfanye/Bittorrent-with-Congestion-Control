@@ -85,7 +85,7 @@ struct Request* parse_has_get_chunk_file(char* chunk_file, char* output_filename
   p_chunk = request->chunks;
   i = 0;
   //int tempnum;
-  while (fgets(line, MAX_LINE_LENGTH, f)) {
+  while(fgets(line, MAX_LINE_LENGTH, f)) {
     sscanf(line, "%d %s", &(p_chunk[i].id), hash);
     hex2binary((char*)hash, SHA1_HASH_SIZE*2, binary_hash);
     memcpy((char*)(p_chunk[i].hash), (char*)binary_hash, sizeof(binary_hash));
