@@ -218,6 +218,28 @@ void save_data_packet(struct packet* in_packet, int chunk_id){
   chunk->received_byte_number = chunk->received_byte_number + data_size;
 }
 
+void update_ihave_table(struct Chunk* chunk){
+  has_chunk_table->chunk_number = has_chunk_table->chunk_number + 1;
+  struct Chunk* temp = (struct Chunk*)malloc(sizeof(struct Chunk) * has_chunk_table->chunk_number);
+  int i=0;
+  for(i = 0; i < has_chunk_table->chunk_number-1; ++i){
+    temp[i].id = has_chunk_table->chunks[i].id;
+    temp[i].state = has_chunk_table->chunks[i].state;
+    temp[i].received_seq_number = has_chunk_table->chunks[i].received_seq_number;
+    temp[i].received_byte_number = has_chunk_table->chunks[i].received_byte_number;
+    temp[i].data = has_chunk_table->chunks[i].data;
+    memcpy(temp[i].hash, has_chunk_table->chunks[i].hash, SHA1_HASH_SIZE);
+  }
+  temp[has_chunk_table->chunk_number-1].id = chunk->id;
+  temp[has_chunk_table->chunk_number-1].state = OWNED;
+  temp[has_chunk_table->chunk_number-1].received_seq_number = 0;
+  temp[has_chunk_table->chunk_number-1].received_byte_number = 0;
+  temp[has_chunk_table->chunk_number-1].data = NULL;
+  memcpy(temp[has_chunk_table->chunk_number-1].hash, chunk->hash, SHA1_HASH_SIZE);
+  free(has_chunk_table->chunks);
+  has_chunk_table->chunks = temp;
+}
+
 int save_chunk(int chunk_id){
   char* filename = NULL;
   struct Chunk* chunk = &current_request->chunks[chunk_id];
@@ -240,6 +262,11 @@ int save_chunk(int chunk_id){
       filename = current_request->filename;
       printf("offset: %d\n", offset);
       write_file(filename, chunk->data, BT_CHUNK_SIZE, offset);
+      printf("before update_ihave_table\n");
+      print_request(has_chunk_table);
+      update_ihave_table(chunk);
+      printf("after update_ihave_table\n");
+      print_request(has_chunk_table);
     }
     free(chunk->data);
     chunk->data = NULL;
