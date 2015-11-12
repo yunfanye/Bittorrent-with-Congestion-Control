@@ -14,9 +14,9 @@
 /* abort downloading timeout coefficient: when acting as a receiver,
  * peer may crash or pipe may break; thus, the download stream should be 
  * aborted when a significant time passes */
-#define ABORT_COEFF		6
+#define ABORT_COEFF		4
 
-#define ABS(x) ((x)>=(0)?(x):(-x))
+#define ABS(x) ( (x) >= (0) ? (x) : (-x) )
 /* no valid identity can be 0 */
 #define ID_NULL	0
 /* fixed chunk size of 512 KB */
@@ -39,14 +39,14 @@ static unsigned * last_ack_table;
 static unsigned * dup_ack_count;
 
 /* network parameters */
-static unsigned RTT = 0; /* round trip time */
-static unsigned deviation = 0; /* standard deviation of RTT */
-static unsigned RTO; /* packet timeout */
+static int RTT = 0; /* round trip time */
+static int deviation = 0; /* standard deviation of RTT */
+static int RTO; /* packet timeout */
 
 /* "private" function prototypes */
 
 /* estimate the RTT and network deviation, set RTT, deviation and RTO */
-void infer_RTT(unsigned timestamp); 
+void infer_RTT(unsigned long timestamp); 
 
 int finish_download(int index);
 int get_download_index_by_id(int id);
@@ -232,10 +232,12 @@ unsigned get_timeout_seq(int peer_id) {
 	unsigned seq;
 	if(head == NULL)
 		return 0;
+	if(rand() % 1000 < 5)
+	printf("\nCHECK TIMEOUT peer %d, TIME OUT!!!! current %lu, stamp %lu, diff %lu, RTO: %d, RTT: %d, dev: %d\n", peer_id, milli_time(), head -> timestamp, milli_time() - head -> timestamp, RTO, RTT, deviation);
 	if((milli_time() - head -> timestamp) > RTO) {		
 		/* retransmit, update time stamp */
 		seq = head -> seq;
-		//printf("\npeer %d, seq %d TIME OUT!!!! current %lu, stamp %lu\n", peer_id, seq, milli_time(), head -> timestamp);
+		printf("\npeer %d, seq %d TIME OUT!!!! current %lu, stamp %lu\n", peer_id, seq, milli_time(), head -> timestamp);
 		head -> timestamp = milli_time();
 		return seq;
 	}
@@ -304,9 +306,14 @@ int receive_ack(int peer_id, unsigned seq) {
 	if(last_ack_table[index] == seq) {
  		dup_ack_count[index]++;
  		if(dup_ack_count[index] >= 3) {
+ 			printf("fast retransmit\n");
  			/* since we don't implement fast recovery, simply set it as timeout */
  			if(head -> seq == seq + 1)
  				head -> timestamp -= RTO;
+ 			else {
+ 				printf("ERROR!!!!\n");
+ 				exit(0);
+ 			}
  			dup_ack_count[index] = 0;
  		}
  	}
@@ -329,11 +336,15 @@ int receive_ack(int peer_id, unsigned seq) {
  *******************************************************/
 
 /* estimate the RTT and network deviation */
-void infer_RTT(unsigned timestamp) {
-	unsigned new_RTT = timestamp - milli_time();
-	unsigned new_dev;
-	new_dev = ABS(new_RTT - RTT);
+void infer_RTT(unsigned long timestamp) {
+	int new_RTT = milli_time() - timestamp;
+	int new_dev = new_RTT - RTT;
+	new_dev = ABS(new_dev);
 	RTT = ALPHA * RTT + (1 - ALPHA) * new_RTT;
+	if(new_dev < 0) {
+		printf("\n%d\n", new_dev);
+		exit(0);
+	}
 	deviation = BETA * deviation + (1 - BETA) * new_dev;
 	/* Jacobson restransmission */
 	RTO = RTT + 4 * deviation;
