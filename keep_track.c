@@ -296,7 +296,6 @@ int receive_ack(int peer_id, unsigned seq) {
 		if(head -> seq == seq)
 			infer_RTT(head -> timestamp);
 		tmp = head;
-		printf("%d\n", head->seq);
 		head = head -> next;
 		if(head != NULL)
 			free(tmp);
@@ -321,8 +320,7 @@ int receive_ack(int peer_id, unsigned seq) {
 	sent_queue_head[index] = head;
 	/* record size */
 	printf("receive_ack: %d\n", count);
-	if(head != NULL)
-		sent_queue_size[index] -= count;
+	sent_queue_size[index] -= count;
 	return count;
 }
 

@@ -291,7 +291,7 @@ void send_data_packets() {
     	seq_number -= 1; /* offset by 1 */
     	timeout = 1;
     }
-    // printf("seq: %d, canSend: %d, queue: %d, cwnd: %d\n", seq_number, canSend, get_queue_size(peer_id), get_cwnd_size(peer_id));
+    //printf("seq: %d, canSend: %d, queue: %d, cwnd: %d\n", seq_number, canSend, get_queue_size(peer_id), get_cwnd_size(peer_id));
    	/* send one packet one time to ensure fairness */
     if(canSend && seq_number < MAX_PACKET_PER_CHUNK) {
 		  char data[MAX_PAYLOAD_SIZE];
