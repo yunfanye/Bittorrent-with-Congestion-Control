@@ -350,7 +350,7 @@ uint8_t* pick_a_chunk_after_crash(struct Chunk** chunk_pointer, int* peer_id){
 }
 
 void download_peer_crash_wrapper() {
-	if(download_peer_crash()) {
+	if(download_peer_crash()>0) {
 		/* after crashing, add new connection*/
 		uint8_t* chunk_hash = NULL;
 		struct Chunk* p_chunk;
@@ -371,11 +371,11 @@ void download_peer_crash_wrapper() {
 }
 
 // need to update current_request's chunk state and remove connections peer
-void download_peer_crash(){
+int download_peer_crash(){
   uint8_t hash[SHA1_HASH_SIZE];
   int peer_id = clean_download_timeout(hash);
   if(peer_id<=0 || connections == NULL || current_request == NULL){
-    return;
+    return 0;
   }
   uint8_t* chunk_hash = NULL;
   struct Chunk* p_chunk;
@@ -409,18 +409,19 @@ void download_peer_crash(){
     struct connection* p = connections;
     connections = connections->next;
     free_connection(p);
-    return;
+    return 1;
   }
   while(temp->next&&temp){
     if(temp->next->peer_id==peer_id){
       struct connection* p = temp->next;
       temp->next = temp->next->next;
       free_connection(p);
-      return;
+      return 1;
     }
     temp = temp->next;
   }
   printf("Should not print this: did not find peer\n");
+  return 0;
 }
 
 // remove from upload_id_list and upload_chunk_id_list
