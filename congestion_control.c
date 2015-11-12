@@ -1,6 +1,8 @@
 #include "keep_track.h"
 #include "congestion_control.h"
 #include <stdio.h>
+#include "window_log.h"
+#include "util.h"
 
 #define INITIAL_WINDOW	1
 
@@ -16,23 +18,30 @@ int init_controller(int max) {
 
 int window_control(int peer_id, int count) {
 	int index = get_upload_index_by_id(peer_id);
+	int window_size_change = 0;
 	if(index == -1)
 		return -1;
-	if(cc_policies[index] == slow_start)
+	if(cc_policies[index] == slow_start) {
 		cwnds[index] += count;
+		window_size_change = 1;
+	}
 	else if (cc_policies[index] == congestion_avoidance) {
 		if(cwnds[index] <= max_cwnds[index]/2) {
 			/* current wnd reachs half of max, linear increase */
 			ack_counts[index] += count;
 			if(ack_counts[index] >= cwnds[index]) {
 				ack_counts[index] -= cwnds[index];
-				cwnds[index]++;			
+				cwnds[index]++;	
+				window_size_change = 1;		
 			}
 		}
 		else {
 			cwnds[index] += count;
+			window_size_change = 1;
 		}
 	}
+	if(window_size_change)
+		log_window(peer_id, cwnds[index], milli_time());
 	max_cwnds[index] = MAX(cwnds[index], max_cwnds[index]);
 	return 1;
 }

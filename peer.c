@@ -264,6 +264,7 @@ void peer_run(bt_config_t *config) {
     exit(-1);
   }
 
+	open_log();
   /* init tracker and controller */
   init_tracker(config->max_conn);
   init_controller(config->max_conn);
