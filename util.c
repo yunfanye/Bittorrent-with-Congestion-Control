@@ -316,8 +316,6 @@ int save_chunk(int chunk_id){
       filename = current_request->filename;
       printf("chunk->id: %d, offset: %d\n", chunk->id, offset);
       write_file(filename, chunk->data, BT_CHUNK_SIZE, offset);
-      printf("before update_ihave_table\n");
-      print_request(has_chunk_table);
       update_ihave_table(chunk);
       printf("after update_ihave_table\n");
       print_request(has_chunk_table);
