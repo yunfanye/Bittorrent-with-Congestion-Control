@@ -1,3 +1,7 @@
+Tests for Checkpoint 2:
+1. Test script from course website "tests.py"
+2. Add in tests like serial download and peer crash to the "tests.py"
+
 Tests for Checkpoint 1:
 1. Test script from course website "checkpoint1.rb"
 2. Test of sending WHOHAS and IHAVE packets between 2 peers for small file and small number of chunks.
