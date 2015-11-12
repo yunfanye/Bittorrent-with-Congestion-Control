@@ -275,7 +275,6 @@ int wait_ack(int peer_id, unsigned seq, int timeout) {
 		sent_queue_tail[index] = tail;
 	}
 	/* size incr */	
-	printf("wait_ack\n");
 	sent_queue_size[index]++;
 	return 1;
 }
