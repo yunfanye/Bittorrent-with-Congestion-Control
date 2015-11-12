@@ -429,20 +429,20 @@ int download_peer_crash(){
   if(peer_id<=0 || connections == NULL || current_request == NULL){
     return 0;
   }
-  uint8_t* chunk_hash = NULL;
-  struct Chunk* p_chunk;
-  int new_peer_id = -1;
-  chunk_hash = pick_a_chunk_after_crash(&p_chunk, &new_peer_id);
-  printf("picked a chunk after crash");print_hash(chunk_hash);
-  if(chunk_hash!=NULL){
-    if(start_download(new_peer_id, chunk_hash)){
-      bt_peer_t* temp_info = bt_peer_info(&config, new_peer_id);
-      struct packet* packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
-      send_packet(*packet, sock, (struct sockaddr*)&(temp_info->addr));
-      print_packet(packet);
-      free_packet(packet);
-    }
-  }
+  // uint8_t* chunk_hash = NULL;
+  // struct Chunk* p_chunk;
+  // int new_peer_id = -1;
+  // chunk_hash = pick_a_chunk_after_crash(&p_chunk, &new_peer_id);
+  // printf("picked a chunk after crash");print_hash(chunk_hash);
+  // if(chunk_hash!=NULL){
+  //   if(start_download(new_peer_id, chunk_hash)){
+  //     bt_peer_t* temp_info = bt_peer_info(&config, new_peer_id);
+  //     struct packet* packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
+  //     send_packet(*packet, sock, (struct sockaddr*)&(temp_info->addr));
+  //     print_packet(packet);
+  //     free_packet(packet);
+  //   }
+  // }
   int i=0;
   for(i=0;i < current_request->chunk_number; i++){
     if(memcmp(hash, current_request->chunks[i].hash, SHA1_HASH_SIZE) == 0){
