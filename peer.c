@@ -139,7 +139,7 @@ void process_inbound_udp(int sock) {
         return;
       }
       chunk_id = get_chunk_id(chunk_hash, current_request);
-      if(chunk_id < 0){
+      if(chunk_id < 0 || chunk_id >= current_request->chunk_number){
         return;
       }
       /* keep track of the packet */
