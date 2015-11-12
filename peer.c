@@ -176,9 +176,9 @@ void process_inbound_udp(int sock) {
             printf("download completed!\n");
             abort_download(peer_id);
             chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
-            printf("picked a chunk,  %d", p_chunk->id);
-            print_hash(chunk_hash);
             if(chunk_hash!=NULL){
+              printf("picked a chunk,  %d", p_chunk->id);
+              print_hash(chunk_hash);
               mark_peer_state(peer_id, WORKING);
               /* add a transmission stream, i.e. associate the stream with peer */
               if(start_download(peer_id, chunk_hash)){
