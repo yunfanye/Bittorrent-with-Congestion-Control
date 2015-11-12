@@ -1,6 +1,7 @@
 Tests for Checkpoint 2:
 1. Test script from course website "tests.py"
 2. Add in tests like serial download and peer crash to the "tests.py"
+3. group peer and ref into a network to perform mixed download and upload.
 
 Tests for Checkpoint 1:
 1. Test script from course website "checkpoint1.rb"

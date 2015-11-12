@@ -23,6 +23,7 @@ int window_control(int peer_id, int count) {
 		return -1;
 	if(cc_policies[index] == slow_start) {
 		cwnds[index] += count;
+		max_cwnds[index] = MAX(cwnds[index], max_cwnds[index]);
 		window_size_change = 1;
 	}
 	else if (cc_policies[index] == congestion_avoidance) {
@@ -42,19 +43,20 @@ int window_control(int peer_id, int count) {
 	}
 	if(window_size_change)
 		log_window(peer_id, cwnds[index], milli_time());
-	max_cwnds[index] = MAX(cwnds[index], max_cwnds[index]);
 	return 1;
 }
 
 void window_timeout(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
+	if(index == -1)
+		return;
 	cc_policies[index] = congestion_avoidance;
 	cwnds[index] = INITIAL_WINDOW;
 }
 
 int get_cwnd_size(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
-	if(peer_id!=-1){
+	if(index != -1){
 		return cwnds[index];
 	}
 	return -1;
@@ -62,6 +64,9 @@ int get_cwnd_size(int peer_id) {
 
 void init_cwnd(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
+	if(index == -1)
+		return;
 	cc_policies[index] = slow_start;
 	cwnds[index] = INITIAL_WINDOW;
+	max_cwnds[index] = 1;
 }
