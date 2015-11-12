@@ -4,8 +4,12 @@ Tests for Checkpoint 2:
 3. group peer and ref into a network to perform mixed download and upload.
 4. Using Valgrind to test memory leaks.
 5. Tested transfering data in large amount that needs multiple whohas and ihave packets between 2 peers.
-6. Tested with invalid input of has_chunk_file, master_chunk_file, invalid get chunk file content(invalid chunk ids) etc. 
-7. Tested illegal use case for example passing one more request before the previous one finish.
+6. Tested one peer concurrently uploading chunks to different peers.
+7. Tested one peer concurrently downloading chunks from different peers.
+8. Tested processing WHOHAS IHAVE while uploading/downloading with peers.
+9. Tested with invalid input of has_chunk_file, master_chunk_file, invalid get chunk file content(invalid chunk ids) etc. 
+10. Tested illegal use case for example passing one more request before the previous one finish.
+11. Tested receiving data/ack packets at any time even after begin/finish a GET request.
 
 Tests for Checkpoint 1:
 1. Test script from course website "checkpoint1.rb"
