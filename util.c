@@ -235,6 +235,7 @@ void update_ihave_table(struct Chunk* chunk){
   temp[has_chunk_table->chunk_number-1].received_byte_number = 0;
   temp[has_chunk_table->chunk_number-1].data = NULL;
   memcpy(temp[has_chunk_table->chunk_number-1].hash, chunk->hash, SHA1_HASH_SIZE);
+  free(has_chunk_table->chunks);
   has_chunk_table->chunks = temp;
 }
 
