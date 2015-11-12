@@ -281,6 +281,10 @@ void peer_run(bt_config_t *config) {
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
   total_chunk_table = parse_total_chunk_file(config->chunk_file, NULL);
+  if(has_chunk_table==NULL||total_chunk_table==NULL){
+    printf("Invalid Input has_chunk_table, master_data_file_name\n");
+    return;
+  }
   print_request(has_chunk_table);
   print_request(total_chunk_table);
 

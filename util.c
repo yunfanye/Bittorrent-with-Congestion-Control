@@ -119,7 +119,9 @@ struct Request* parse_total_chunk_file(char* chunk_file, char* output_filename){
   char line[MAX_LINE_LENGTH];
   struct Chunk* p_chunk;
   f = fopen(chunk_file, "r");
-  assert(f != NULL);
+  if(f==NULL){
+    return NULL;
+  }
   fgets(line, MAX_LINE_LENGTH, f);
   fgets(line, MAX_LINE_LENGTH, f);
   while (fgets(line, MAX_LINE_LENGTH, f) != NULL) {
