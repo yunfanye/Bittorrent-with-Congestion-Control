@@ -2,12 +2,12 @@
 
 int find_chunk(uint8_t* hash){
   int i = 0;
-  char hash_buffer1[SHA1_HASH_SIZE * 2 + 1];
-  char hash_buffer2[SHA1_HASH_SIZE * 2 + 1];
+  // char hash_buffer1[SHA1_HASH_SIZE * 2 + 1];
+  // char hash_buffer2[SHA1_HASH_SIZE * 2 + 1];
   for(i = 0; i < has_chunk_table->chunk_number; i++){
-    binary2hex(has_chunk_table->chunks[i].hash, SHA1_HASH_SIZE, hash_buffer1);
-    binary2hex(hash, SHA1_HASH_SIZE, hash_buffer2);
-    printf("%s, %s\n", hash_buffer1, hash_buffer2);
+    // binary2hex(has_chunk_table->chunks[i].hash, SHA1_HASH_SIZE, hash_buffer1);
+    // binary2hex(hash, SHA1_HASH_SIZE, hash_buffer2);
+    // printf("%s, %s\n", hash_buffer1, hash_buffer2);
     if (memcmp(hash, has_chunk_table->chunks[i].hash, SHA1_HASH_SIZE) == 0) {
       return 1;
     }
