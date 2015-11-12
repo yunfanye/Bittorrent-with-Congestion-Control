@@ -196,6 +196,7 @@ void save_data_packet(struct packet* in_packet, int chunk_id){
   }
   chunk->received_seq_number = seq_number;
   memcpy(chunk->data + chunk->received_byte_number, ((char *)in_packet + header_length), data_size);
+  printf("write to offset: %d, data_size: %d\n", chunk->received_byte_number, data_size);
   chunk->received_byte_number = chunk->received_byte_number + data_size;
 }
 
