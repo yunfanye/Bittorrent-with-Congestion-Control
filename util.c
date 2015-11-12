@@ -181,6 +181,9 @@ int packet_contain_chunk(struct packet* packet, uint8_t* hash){
 // save data in the packet
 void save_data_packet(struct packet* in_packet, int chunk_id){
   struct Chunk* chunk = &current_request->chunks[chunk_id];
+  if(chunk->state==OWNED){
+    return;
+  }
   unsigned int seq_number = ntohl(*(unsigned int*)((char*)in_packet+8));
   unsigned short header_length = ntohs(*(unsigned short*)((char*)in_packet+4));
   unsigned short packet_length = ntohs(*(unsigned short*)((char*)in_packet+6));
@@ -191,7 +194,7 @@ void save_data_packet(struct packet* in_packet, int chunk_id){
   if(data_size > MAX_PAYLOAD_SIZE){
     data_size = MAX_PAYLOAD_SIZE;
   }
-  if(chunk->data == NULL&&chunk->state==NOT_STARTED){
+  if(chunk->data == NULL&&chunk->state==RECEIVING){
     chunk->data = malloc(sizeof(char) * BT_CHUNK_SIZE);
   }
   // if(chunk->received_byte_number!=chunk->seq_number){
