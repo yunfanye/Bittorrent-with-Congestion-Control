@@ -70,5 +70,7 @@ void init_cwnd(int peer_id) {
 		return;
 	cc_policies[index] = slow_start;
 	cwnds[index] = INITIAL_WINDOW;
+	ack_counts[index] = 0;
 	max_cwnds[index] = 1;
+	log_window(peer_id, cwnds[index], milli_time());
 }

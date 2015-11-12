@@ -14,7 +14,7 @@ static unsigned long base_time;
 
 int open_log() {
 	base_time = milli_time();
-	log_fd = open_file(log_file_name);
+	log_fd = open(log_file_name, O_RDWR|O_CREAT|O_TRUNC, 0640);
 	return log_fd;
 }
 
