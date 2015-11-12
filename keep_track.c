@@ -183,6 +183,8 @@ int start_download(int peer_id, uint8_t * chunk_hash) {
 /* close a download stream, may because it is finished or denied */
 int abort_download(int peer_id) {
 	int index = get_download_index_by_id(peer_id);
+	if(index == -1)
+		return 0;
 	download_id_map[index] = ID_NULL;
 	/* release resource */
 	free(download_chunk_map[index]);
@@ -210,6 +212,8 @@ int start_upload(int peer_id, int chunk_id) {
 /* close a upload stream, may because it is finished or closed by peer */
 int abort_upload(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
+	if(index == -1)
+		return 0;
 	upload_id_map[index] = ID_NULL;
 	/* TODO: crashed peer release resource */
 	if(sent_queue_tail[index] != NULL)
@@ -222,6 +226,8 @@ int abort_upload(int peer_id) {
 /* return the first timeout seq, 0 if no timeout */
 unsigned get_timeout_seq(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
+	if(index == -1)
+		return 0;
 	struct sent_packet * head = sent_queue_head[index];
 	unsigned seq;
 	if(head == NULL)
@@ -240,6 +246,10 @@ unsigned get_timeout_seq(int peer_id) {
 /* send a DATA packet, wait for ack; enqueue */
 int wait_ack(int peer_id, unsigned seq, int timeout) {
 	int index = get_upload_index_by_id(peer_id);
+	
+	if(index == -1)
+		return 0;
+	
 	struct sent_packet * head = sent_queue_head[index];
 	struct sent_packet * tail = sent_queue_tail[index];
 	struct sent_packet * new_node;
@@ -274,6 +284,8 @@ int wait_ack(int peer_id, unsigned seq, int timeout) {
 int receive_ack(int peer_id, unsigned seq) {
 	int count = 0;
 	int index = get_upload_index_by_id(peer_id);
+	if(index == -1)
+		return 0;
 	struct sent_packet * head = sent_queue_head[index];
 	struct sent_packet * tmp;
 	/* cumulative ack, clear all in front of queue
@@ -307,7 +319,8 @@ int receive_ack(int peer_id, unsigned seq) {
 	sent_queue_head[index] = head;
 	/* record size */
 	printf("receive_ack: %d\n", count);
-	sent_queue_size[index] -= count;
+	if(head != NULL)
+		sent_queue_size[index] -= count;
 	return count;
 }
 

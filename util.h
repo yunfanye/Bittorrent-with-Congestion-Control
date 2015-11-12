@@ -31,5 +31,6 @@ void print_connection(struct connection* connection);
 void print_connections();
 void print_request(struct Request* request);
 void print_chunks(struct Chunk* chunks, int chunk_number);
+void print_hash(uint8_t * hash);
 #endif
 
