@@ -191,12 +191,14 @@ void save_data_packet(struct packet* in_packet, int chunk_id){
   if(data_size > MAX_PAYLOAD_SIZE){
     data_size = MAX_PAYLOAD_SIZE;
   }
-  if(chunk->data == NULL){
+  if(chunk->data == NULL&&chunk->state==NOT_STARTED){
     chunk->data = malloc(sizeof(char) * BT_CHUNK_SIZE);
   }
+  // if(chunk->received_byte_number!=chunk->seq_number){
+  //   printf("write to offset: %d, data_size: %d\n", chunk->received_byte_number, data_size);
+  // }
   chunk->received_seq_number = seq_number;
   memcpy(chunk->data + chunk->received_byte_number, ((char *)in_packet + header_length), data_size);
-  printf("write to offset: %d, data_size: %d\n", chunk->received_byte_number, data_size);
   chunk->received_byte_number = chunk->received_byte_number + data_size;
 }
 
