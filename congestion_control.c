@@ -50,6 +50,7 @@ void window_timeout(int peer_id) {
 	int index = get_upload_index_by_id(peer_id);
 	if(index == -1)
 		return;
+	printf("window timout\n");
 	cc_policies[index] = congestion_avoidance;
 	cwnds[index] = INITIAL_WINDOW;
 	log_window(peer_id, cwnds[index], milli_time());
