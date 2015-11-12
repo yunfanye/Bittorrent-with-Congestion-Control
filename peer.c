@@ -135,6 +135,9 @@ void process_inbound_udp(int sock) {
     case DATA:
     	/* get the corresponding chunk of the peer */
     	chunk_hash = get_chunk_hash(peer_id);
+      if(chunk_hash==NULL){
+        return;
+      }
       chunk_id = get_chunk_id(chunk_hash, current_request);
       if(chunk_id < 0){
         return;
