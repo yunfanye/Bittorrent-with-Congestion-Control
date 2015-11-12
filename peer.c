@@ -274,7 +274,7 @@ void peer_run(bt_config_t *config) {
   total_chunk_table = NULL;
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
-  total_chunk_table = parse_has_get_chunk_file(config->chunk_file, NULL);
+  total_chunk_table = parse_total_chunk_file(config->chunk_file, NULL);
   print_request(has_chunk_table);
   print_request(total_chunk_table);
 
