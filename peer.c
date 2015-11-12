@@ -313,7 +313,8 @@ void peer_run(bt_config_t *config) {
     // }
     if(all_chunk_finished(current_request)){
       printf("all chunk finished, GET request DONE\n");
-      free(current_request->filename);      
+      free(current_request->filename);
+      free(current_request->chunks);      
       free(current_request);
       current_request = NULL;
     }
