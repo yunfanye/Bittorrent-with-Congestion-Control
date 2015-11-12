@@ -52,6 +52,7 @@ void window_timeout(int peer_id) {
 		return;
 	cc_policies[index] = congestion_avoidance;
 	cwnds[index] = INITIAL_WINDOW;
+	log_window(peer_id, cwnds[index], milli_time());
 }
 
 int get_cwnd_size(int peer_id) {
