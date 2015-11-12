@@ -245,6 +245,9 @@ int packet_contain_chunk(struct packet* packet, uint8_t* hash){
 // save data in the packet
 void save_data_packet(struct packet* in_packet, int chunk_id){
   struct Chunk* chunk = &current_request->chunks[chunk_id];
+  if(chunk==NULL){
+    return;
+  }
   if(chunk->state == OWNED){
     return;
   }
