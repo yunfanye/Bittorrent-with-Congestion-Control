@@ -370,7 +370,6 @@ void download_peer_crash_wrapper() {
   }
 }
 
->>>>>>> 7e9283aa9be11973be753d8ea3d2658fa8a309bd
 // need to update current_request's chunk state and remove connections peer
 void download_peer_crash(){
   uint8_t hash[SHA1_HASH_SIZE];
