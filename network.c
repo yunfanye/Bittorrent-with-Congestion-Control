@@ -275,7 +275,6 @@ void send_data_packets() {
   	canSend = 1;
     /* if timeout send timeout packet first */
     if ((seq_number = get_timeout_seq(peer_id)) == 0) {
-      printf("here send_data_packets: %d, %d, %d, %d\n", seq_number, peer_id, get_queue_size(peer_id), get_cwnd_size(peer_id));
     	/* if not timout, check window size */
     	if(get_queue_size(peer_id) < get_cwnd_size(peer_id)) {
 				seq_number = get_tail_seq_number(peer_id);
@@ -292,10 +291,9 @@ void send_data_packets() {
     	seq_number -= 1; /* offset by 1 */
     	timeout = 1;
     }
-    printf("seq: %d, canSend: %d, queue: %d, cwnd: %d\n", seq_number, canSend, get_queue_size(peer_id), get_cwnd_size(peer_id));
+    // printf("seq: %d, canSend: %d, queue: %d, cwnd: %d\n", seq_number, canSend, get_queue_size(peer_id), get_cwnd_size(peer_id));
    	/* send one packet one time to ensure fairness */
     if(canSend && seq_number < MAX_PACKET_PER_CHUNK) {
-      printf("cansend\n");
 		  char data[MAX_PAYLOAD_SIZE];
 		  struct packet* packet;
 		  if(seq_number==MAX_PACKET_PER_CHUNK-1){

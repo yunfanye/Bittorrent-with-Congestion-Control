@@ -209,7 +209,6 @@ int save_chunk(int chunk_id){
     shahash((uint8_t*)chunk->data, BT_CHUNK_SIZE, hash);
     // if chunk verify failed
     if (memcmp(hash, chunk->hash, SHA1_HASH_SIZE) != 0){
-      
       char hash_buffer[SHA1_HASH_SIZE * 2 + 1];
     	memset(hash_buffer, 0, SHA1_HASH_SIZE * 2 + 1);
     	binary2hex(hash, SHA1_HASH_SIZE, hash_buffer);
