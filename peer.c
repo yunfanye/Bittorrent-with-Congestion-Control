@@ -48,7 +48,7 @@ void process_inbound_udp(int sock) {
   if(recv_bytes <= 0) {
   	/* conn closed or error occurred, close the socket */
   }
-  
+
   unsigned short magic_number = ntohs(*(unsigned short*)buf);
   unsigned char version_number = *(unsigned char*)(buf+2);
   unsigned char packet_type = *(unsigned char*)(buf+3);
@@ -138,7 +138,9 @@ void process_inbound_udp(int sock) {
       if(chunk_hash==NULL){
         return;
       }
+        
       chunk_id = get_chunk_id(chunk_hash, current_request);
+      printf("inbound data: %d , %d!\n", chunk_id, current_request->chunk_number);
       if(chunk_id < 0 || chunk_id >= current_request->chunk_number){
         return;
       }
@@ -169,7 +171,9 @@ void process_inbound_udp(int sock) {
           free_packet(packet);
           // save data to chunk until chunk is filled
           // each chunk has 512*1024 bytes, each packet has 1500-16 max bytes data
+          	printf("before save packet!\n");
           save_data_packet(incoming_packet, chunk_id);
+          	printf("after save packet!\n");
           // save the whole chunk if finished
           // verify chunk is done within the function
           if(save_chunk(chunk_id) > 0) {
