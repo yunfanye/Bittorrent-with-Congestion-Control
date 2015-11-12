@@ -1,0 +1,1 @@
+1. reordered packets are discarded directly, which may reduce efficiency
