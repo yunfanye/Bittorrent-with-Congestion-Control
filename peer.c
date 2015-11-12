@@ -218,6 +218,9 @@ void process_inbound_udp(int sock) {
 void process_get(char *chunkfile, char *outputfile){
   //struct has_chunk* get_chunks;
   //get_chunks = NULL;
+  if(current_request!=NULL){
+    return;
+  }
   current_request = parse_has_get_chunk_file(chunkfile, outputfile);
   if(current_request!=NULL){
     print_request(current_request);

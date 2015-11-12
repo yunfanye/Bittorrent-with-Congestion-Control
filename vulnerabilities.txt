@@ -1,1 +1,2 @@
 1. reordered packets are discarded directly, which may reduce efficiency
+2. when tested with get chunk request that contain the same hash for different chunk ids, will cause segmentation fault currently.
