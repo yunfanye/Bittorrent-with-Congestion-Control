@@ -171,6 +171,7 @@ int peer_contain_chunk(int peer_id, uint8_t* hash){
         }
       }
     }
+    temp = temp->next;
   }
   return -1;
 }
