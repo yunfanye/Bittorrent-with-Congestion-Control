@@ -98,7 +98,7 @@ void process_inbound_udp(int sock) {
         // TODO: may need to update timestamp for the new current_request
         // pick a chunk and mark the chunk as RECEIVING
         chunk_hash = pick_a_chunk(incoming_packet, &p_chunk);
-        printf("picked a chunk");
+        printf("picked a chunk,  %d", p_chunk->id);
         print_hash(chunk_hash);
         if(chunk_hash!=NULL){
           /* add a transmission stream, i.e. associate the stream with peer */
@@ -126,7 +126,7 @@ void process_inbound_udp(int sock) {
   		if(find_chunk(chunk_hash)==1){
     	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
-        printf("peer_id: %d, GET packet here\n", peer_id);
+        printf("peer_id: %d, GET packet here, chunk_id: %d\n", peer_id, get_chunk_id(chunk_hash, has_chunk_table));
 		    if(start_upload(peer_id, get_chunk_id(chunk_hash, has_chunk_table))){
           printf("start_upload success\n"); 
 		  	 	init_cwnd(peer_id);/* init cwnd */
@@ -143,7 +143,7 @@ void process_inbound_udp(int sock) {
       /* keep track of the packet */
       last_continuous_seq = track_data_packet(peer_id, seq_number, data_length);
       // ignore historical packets
-      printf("GOT data pack: %d, last: %d\n", seq_number, last_continuous_seq);
+      // printf("GOT data pack: %d, last: %d\n", seq_number, last_continuous_seq);
       if(seq_number<last_continuous_seq){
         printf("Receive historical data packet, ack with last_continuous_seq\n");
         packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
@@ -165,7 +165,6 @@ void process_inbound_udp(int sock) {
       else{
           packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);
-          print_packet(packet);
           free_packet(packet);
           // save data to chunk until chunk is filled
           // each chunk has 512*1024 bytes, each packet has 1500-16 max bytes data
@@ -177,7 +176,7 @@ void process_inbound_udp(int sock) {
             printf("download completed!\n");
             abort_download(peer_id);
             chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
-            printf("\npicked a chunk\n");
+            printf("picked a chunk,  %d", p_chunk->id);
             print_hash(chunk_hash);
             if(chunk_hash!=NULL){
               mark_peer_state(peer_id, WORKING);
@@ -197,7 +196,7 @@ void process_inbound_udp(int sock) {
     case ACK:
     	/* TODO: move pointer */
       // print_incoming_packet(incoming_packet);
-    	printf("ack %d\n", ack_number);
+    	// printf("ack %d\n", ack_number);
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
       if(ack_number==MAX_PACKET_PER_CHUNK){
