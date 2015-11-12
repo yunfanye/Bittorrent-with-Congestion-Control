@@ -2,12 +2,12 @@
 
 int find_chunk(uint8_t* hash){
   int i = 0;
-  // char hash_buffer1[SHA1_HASH_SIZE * 2 + 1];
-  // char hash_buffer2[SHA1_HASH_SIZE * 2 + 1];
+  char hash_buffer1[SHA1_HASH_SIZE * 2 + 1];
+  char hash_buffer2[SHA1_HASH_SIZE * 2 + 1];
   for(i = 0; i < has_chunk_table->chunk_number; i++){
-    // binary2hex(has_chunk_table->chunks[i].hash, SHA1_HASH_SIZE, hash_buffer1);
-    // binary2hex(hash, SHA1_HASH_SIZE, hash_buffer2);
-    // printf("%s, %s\n", hash_buffer1, hash_buffer2);
+    binary2hex(has_chunk_table->chunks[i].hash, SHA1_HASH_SIZE, hash_buffer1);
+    binary2hex(hash, SHA1_HASH_SIZE, hash_buffer2);
+    printf("%s, %s\n", hash_buffer1, hash_buffer2);
     if (memcmp(hash, has_chunk_table->chunks[i].hash, SHA1_HASH_SIZE) == 0) {
       return 1;
     }
@@ -32,7 +32,7 @@ int get_chunk_id(uint8_t* hash, struct Request* chunk_table){
   int i = 0;
   for(i = 0; i < chunk_table->chunk_number; i++){
     if (memcmp(hash, chunk_table->chunks[i].hash, SHA1_HASH_SIZE) == 0) {
-      return i;
+      return chunk_table->chunks[i].id;
     }
   }
   return -1;
@@ -171,7 +171,7 @@ int peer_contain_chunk(int peer_id, uint8_t* hash){
         }
       }
     }
-    temp = temp -> next;
+    temp = temp->next;
   }
   return -1;
 }
@@ -230,7 +230,7 @@ void update_ihave_table(struct Chunk* chunk){
     temp[i].data = has_chunk_table->chunks[i].data;
     memcpy(temp[i].hash, has_chunk_table->chunks[i].hash, SHA1_HASH_SIZE);
   }
-  temp[has_chunk_table->chunk_number-1].id = chunk->id;
+  temp[has_chunk_table->chunk_number-1].id = get_chunk_id(chunk->hash, has_chunk_table);
   temp[has_chunk_table->chunk_number-1].state = OWNED;
   temp[has_chunk_table->chunk_number-1].received_seq_number = 0;
   temp[has_chunk_table->chunk_number-1].received_byte_number = 0;
@@ -243,7 +243,7 @@ void update_ihave_table(struct Chunk* chunk){
 int save_chunk(int chunk_id){
   char* filename = NULL;
   struct Chunk* chunk = &current_request->chunks[chunk_id];
-  if(chunk->received_byte_number == BT_CHUNK_SIZE && chunk->state != OWNED){
+  if(chunk->received_byte_number == BT_CHUNK_SIZE&&chunk->state!=OWNED){
     chunk -> state = OWNED;
     // verify chunk
     uint8_t hash[SHA1_HASH_SIZE];
@@ -338,7 +338,6 @@ uint8_t* pick_a_chunk_after_crash(struct Chunk** chunk_pointer, int* peer_id){
           mark_peer_state(temp_connection->peer_id, WORKING);
           *chunk_pointer = &p_chunk[i];
           *peer_id = temp_connection->peer_id;
-          print_hash(p_chunk[i].hash);
           return p_chunk[i].hash;
         }
       }
@@ -351,7 +350,7 @@ uint8_t* pick_a_chunk_after_crash(struct Chunk** chunk_pointer, int* peer_id){
 }
 
 void download_peer_crash_wrapper() {
-	if(download_peer_crash()) {
+	if(download_peer_crash()>0) {
 		/* after crashing, add new connection*/
 		uint8_t* chunk_hash = NULL;
 		struct Chunk* p_chunk;
@@ -372,14 +371,27 @@ void download_peer_crash_wrapper() {
 }
 
 // need to update current_request's chunk state and remove connections peer
-int download_peer_crash() {
+int download_peer_crash(){
   uint8_t hash[SHA1_HASH_SIZE];
   int peer_id = clean_download_timeout(hash);
   if(peer_id<=0 || connections == NULL || current_request == NULL){
     return 0;
   }
+  uint8_t* chunk_hash = NULL;
+  struct Chunk* p_chunk;
+  int new_peer_id = -1;
+  chunk_hash = pick_a_chunk_after_crash(&p_chunk, &new_peer_id);
+  printf("picked a chunk after crash");print_hash(chunk_hash);
+  if(chunk_hash!=NULL){
+    if(start_download(new_peer_id, chunk_hash)){
+      bt_peer_t* temp_info = bt_peer_info(&config, new_peer_id);
+      struct packet* packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
+      send_packet(*packet, sock, (struct sockaddr*)&(temp_info->addr));
+      print_packet(packet);
+      free_packet(packet);
+    }
+  }
   int i=0;
-  printf("\nWHERE GOT STUCK? 0-1 \n");
   for(i=0;i < current_request->chunk_number; i++){
     if(memcmp(hash, current_request->chunks[i].hash, SHA1_HASH_SIZE) == 0){
       current_request->chunks[i].state = NOT_STARTED;
@@ -392,7 +404,6 @@ int download_peer_crash() {
       break;
     }
   }
-  printf("\nWHERE GOT STUCK? 00 \n");
   struct connection* temp = connections;
   if(temp->peer_id==peer_id){
     struct connection* p = connections;
@@ -400,7 +411,6 @@ int download_peer_crash() {
     free_connection(p);
     return 1;
   }
-  	printf("\nWHERE GOT STUCK? 01 \n");
   while(temp->next&&temp){
     if(temp->next->peer_id==peer_id){
       struct connection* p = temp->next;
@@ -411,7 +421,7 @@ int download_peer_crash() {
     temp = temp->next;
   }
   printf("Should not print this: did not find peer\n");
-  return 1;
+  return 0;
 }
 
 // remove from upload_id_list and upload_chunk_id_list
