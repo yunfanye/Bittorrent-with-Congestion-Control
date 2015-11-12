@@ -98,9 +98,9 @@ void process_inbound_udp(int sock) {
         // TODO: may need to update timestamp for the new current_request
         // pick a chunk and mark the chunk as RECEIVING
         chunk_hash = pick_a_chunk(incoming_packet, &p_chunk);
-        printf("picked a chunk,  %d", p_chunk->id);
-        print_hash(chunk_hash);
         if(chunk_hash!=NULL){
+          printf("picked a chunk,  %d", p_chunk->id);
+          print_hash(chunk_hash);
           /* add a transmission stream, i.e. associate the stream with peer */
           mark_peer_state(peer_id, WORKING);
           printf("start downloading\n");
