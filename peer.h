@@ -20,6 +20,7 @@
 #include "keep_track.h"
 #include "common.h"
 #include "util.h"
+#include "window_log.h"
 
 
 
