@@ -2,6 +2,8 @@ Tests for Checkpoint 2:
 1. Test script from course website "tests.py"
 2. Add in tests like serial download and peer crash to the "tests.py", testing with different network parameters
 3. group peer and ref into a network to perform mixed download and upload.
+4. Using Valgrind to test memory leaks.
+5. Tested transfering data in large amount that needs multiple whohas and ihave packets between 2 peers.
 
 Tests for Checkpoint 1:
 1. Test script from course website "checkpoint1.rb"
