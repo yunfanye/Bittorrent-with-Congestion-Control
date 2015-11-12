@@ -265,7 +265,6 @@ int wait_ack(int peer_id, unsigned seq, int timeout) {
 		sent_queue_tail[index] = tail;
 	}
 	/* size incr */	
-	printf("wait_ack\n");
 	sent_queue_size[index]++;
 	return 1;
 }
@@ -284,7 +283,6 @@ int receive_ack(int peer_id, unsigned seq) {
 		if(head -> seq == seq)
 			infer_RTT(head -> timestamp);
 		tmp = head;
-		printf("%d\n", head->seq);
 		head = head -> next;
 		if(head != NULL)
 			free(tmp);
