@@ -25,7 +25,8 @@ int peer_contain_chunk(int peer_id, uint8_t* hash);
 struct Chunk* update_chunks(struct Chunk* chunks, int* chunk_count, struct packet* packet);
 void update_connections(int peer_id, struct packet* incoming_packet);
 void free_connection(struct connection* p);
-void download_peer_crash();
+int download_peer_crash();
+void download_peer_crash_wrapper();
 uint8_t* pick_a_chunk_after_crash(struct Chunk** chunk_pointer, int* peer_id);
 int mark_peer_state(int peer_id, int state);
 
