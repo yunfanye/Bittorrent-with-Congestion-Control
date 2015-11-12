@@ -16,6 +16,8 @@ int init_controller(int max) {
 
 int window_control(int peer_id, int count) {
 	int index = get_upload_index_by_id(peer_id);
+	if(index == -1)
+		return -1;
 	if(cc_policies[index] == slow_start)
 		cwnds[index] += count;
 	else if (cc_policies[index] == congestion_avoidance) {
