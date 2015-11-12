@@ -194,7 +194,7 @@ int packet_contain_chunk(struct packet* packet, uint8_t* hash){
 // save data in the packet
 void save_data_packet(struct packet* in_packet, int chunk_id){
   struct Chunk* chunk = &current_request->chunks[chunk_id];
-  if(chunk->state==OWNED){
+  if(chunk->state == OWNED){
     return;
   }
   unsigned int seq_number = ntohl(*(unsigned int*)((char*)in_packet+8));
@@ -352,7 +352,6 @@ uint8_t* pick_a_chunk_after_crash(struct Chunk** chunk_pointer, int* peer_id){
 
 void download_peer_crash_wrapper() {
 	if(download_peer_crash()) {
-		printf("\nWHERE GOT STUCK?\n");
 		/* after crashing, add new connection*/
 		uint8_t* chunk_hash = NULL;
 		struct Chunk* p_chunk;
@@ -369,7 +368,6 @@ void download_peer_crash_wrapper() {
 		    free_packet(packet);
 		  }
 		}
-		printf("\nWHERE GOT STUCK2?\n");
   }
 }
 
@@ -387,6 +385,7 @@ int download_peer_crash() {
       current_request->chunks[i].state = NOT_STARTED;
       if(current_request->chunks[i].data!=NULL){
         free(current_request->chunks[i].data);
+        current_request->chunks[i].data = NULL;
       }
       current_request->chunks[i].received_seq_number = 0;
       current_request->chunks[i].received_byte_number = 0;

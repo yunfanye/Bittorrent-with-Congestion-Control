@@ -176,7 +176,6 @@ void process_inbound_udp(int sock) {
             // Download next chunk if exists
             printf("download completed!\n");
             abort_download(peer_id);
-            printf("\nWHERE \n");   
             chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
             printf("\npicked a chunk\n");
             print_hash(chunk_hash);
@@ -288,10 +287,10 @@ void peer_run(bt_config_t *config) {
   while (1) {
     int nfds;
     timeout.tv_sec = 0;
-  	timeout.tv_usec = 5000; /* 50 ms */
+  	timeout.tv_usec = 500000; /* 50 ms */
     FD_SET(STDIN_FILENO, &readfds);
     FD_SET(sock, &readfds);
-    nfds = select(sock+1, &readfds, NULL, NULL, &timeout);   
+    nfds = select(sock+1, &readfds, NULL, NULL, &timeout); 
     if (nfds > 0) {
       if (FD_ISSET(sock, &readfds)) {
         process_inbound_udp(sock);
