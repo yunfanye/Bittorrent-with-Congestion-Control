@@ -119,8 +119,7 @@ void process_inbound_udp(int sock) {
         }
       }
       break;
-    case GET:
-    	printf("\nGot GET Packet\n"); 	
+    case GET:	
       chunk_hash = (uint8_t*)((char*)incoming_packet + header_length);
       /* if find chunk != NULL*/
   		if(find_chunk(chunk_hash)==1){
@@ -143,7 +142,6 @@ void process_inbound_udp(int sock) {
       /* keep track of the packet */
       last_continuous_seq = track_data_packet(peer_id, seq_number, data_length);
       // ignore historical packets
-      printf("GOT data pack: %d, last: %d\n", seq_number, last_continuous_seq);
       if(seq_number<last_continuous_seq){
         printf("Receive historical data packet, ack with last_continuous_seq\n");
         packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
@@ -196,7 +194,6 @@ void process_inbound_udp(int sock) {
     case ACK:
     	/* TODO: move pointer */
       // print_incoming_packet(incoming_packet);
-    	printf("ack %d\n", ack_number);
     	ack_count = receive_ack(peer_id, ack_number);
     	window_control(peer_id, ack_count);
       if(ack_number==MAX_PACKET_PER_CHUNK){
@@ -290,7 +287,7 @@ void peer_run(bt_config_t *config) {
   while (1) {
     int nfds;
     timeout.tv_sec = 0;
-  	timeout.tv_usec = 500000; /* 50 ms */
+  	timeout.tv_usec = 5000; /* 50 ms */
     FD_SET(STDIN_FILENO, &readfds);
     FD_SET(sock, &readfds);
     nfds = select(sock+1, &readfds, NULL, NULL, &timeout); 
