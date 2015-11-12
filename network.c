@@ -288,6 +288,7 @@ void send_data_packets() {
     else {
     	/* retransmit */
       printf("retransmit\n");
+      window_timeout(peer_id);
     	seq_number -= 1; /* offset by 1 */
     	timeout = 1;
     }
