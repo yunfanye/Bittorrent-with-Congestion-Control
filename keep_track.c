@@ -79,8 +79,10 @@ int clean_upload_timeout() {
 	for(i = 0; i < max_conns; i++) {
 		if(upload_id_map[i] != ID_NULL && (now_time - upload_last_time[i]) > 
 			ABORT_COEFF * RTO) {
+			printf("CLEAN UPLOAD TIMEOUT\n");
 			id = upload_id_map[i];
 			abort_upload(upload_id_map[i]);
+			printf("CLEAN UPLOAD TIMEOUT ENDS\n");
 			return id;
 		}
 	}
@@ -144,7 +146,7 @@ unsigned track_data_packet(int peer_id, unsigned seq, unsigned len) {
 	}
 		
 	/* delete acked node to speed up */
-	while(root != node) {
+	while(root != node && root != NULL) {
 		tmp = root;
 		root = root -> next;
 		free(tmp);
@@ -232,8 +234,8 @@ unsigned get_timeout_seq(int peer_id) {
 	unsigned seq;
 	if(head == NULL)
 		return 0;
-	if(rand() % 1000 < 5)
-	printf("\nCHECK TIMEOUT peer %d, TIME OUT!!!! current %lu, stamp %lu, diff %lu, RTO: %d, RTT: %d, dev: %d\n", peer_id, milli_time(), head -> timestamp, milli_time() - head -> timestamp, RTO, RTT, deviation);
+	/*if(rand() % 1000 < 5)
+	printf("\nCHECK TIMEOUT peer %d, TIME OUT!!!! current %lu, stamp %lu, diff %lu, RTO: %d, RTT: %d, dev: %d\n", peer_id, milli_time(), head -> timestamp, milli_time() - head -> timestamp, RTO, RTT, deviation);*/
 	if((milli_time() - head -> timestamp) > RTO) {		
 		/* retransmit, update time stamp */
 		seq = head -> seq;

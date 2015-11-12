@@ -43,6 +43,7 @@ void process_inbound_udp(int sock) {
   char buf[BUFLEN];
   int recv_bytes;
   fromlen = sizeof(from);
+  
   recv_bytes = spiffy_recvfrom(sock, buf, BUFLEN, 0, (struct sockaddr *) &from, &fromlen);
   if(recv_bytes <= 0) {
   	/* conn closed or error occurred, close the socket */
@@ -136,7 +137,7 @@ void process_inbound_udp(int sock) {
     	/* get the corresponding chunk of the peer */
     	chunk_hash = get_chunk_hash(peer_id);
       chunk_id = get_chunk_id(chunk_hash, current_request);
-      if(chunk_id<0){
+      if(chunk_id < 0){
         return;
       }
       /* keep track of the packet */
@@ -164,18 +165,21 @@ void process_inbound_udp(int sock) {
       else{
           packet = make_packet(ACK, NULL, NULL, 0, 0, last_continuous_seq, NULL, NULL, NULL);
           send_packet(*packet, sock, (struct sockaddr*)&from);
+          print_packet(packet);
           free_packet(packet);
           // save data to chunk until chunk is filled
           // each chunk has 512*1024 bytes, each packet has 1500-16 max bytes data
-          save_data_packet(incoming_packet ,chunk_id);
+          save_data_packet(incoming_packet, chunk_id);
           // save the whole chunk if finished
           // verify chunk is done within the function
           if(save_chunk(chunk_id) > 0) {
             // Download next chunk if exists
             printf("download completed!\n");
-            abort_download(peer_id);         
+            abort_download(peer_id);
+            printf("\nWHERE \n");   
             chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
-            printf("picked a chunk");print_hash(chunk_hash);
+            printf("\npicked a chunk\n");
+            print_hash(chunk_hash);
             if(chunk_hash!=NULL){
               mark_peer_state(peer_id, WORKING);
               /* add a transmission stream, i.e. associate the stream with peer */
@@ -297,10 +301,9 @@ void peer_run(bt_config_t *config) {
         process_user_input(STDIN_FILENO, userbuf, handle_user_input, "Currently unused");
       }
     }
-
     send_data_packets();
 		clean_upload_timeout();
-		download_peer_crash();
+		download_peer_crash_wrapper();
     // Need to do whohas_flooding periodically
     // if(get_time_diff(&last_flood_whohas_time) > WHOHAS_FLOOD_INTERVAL_MS){
     //     whohas_flooding(current_request);
