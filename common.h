@@ -18,6 +18,9 @@
 #define RECEIVING 1
 #define NOT_STARTED 2
 
+#define WORKING 0
+#define NOT_WORKING 1
+
 #define MAX_LINE_LENGTH 255
 #define CHUNK_HASH_SIZE 41
 #define MAGIC_NUMBER 15441
@@ -66,7 +69,7 @@ struct connection{
 	int chunk_count;
 	struct Chunk* chunks;
 	struct connection* next;
-
+	int state;
 	// unused fields
 	struct sockaddr_in addr;
 
@@ -76,7 +79,6 @@ struct connection{
 	int last_ack_number;
 	int last_sent_number;
 	int number_duplicate_ack;
-	int state;
 
 	int RTT;
 

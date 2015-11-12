@@ -120,6 +120,18 @@ unsigned long milli_time() {
 	return time.tv_sec * 1000 * 1000 + time.tv_usec;
 }
 
+int mark_peer_state(int peer_id, int state){
+  struct connection* temp = connections;
+  while(temp){
+    if(temp->peer_id==peer_id){
+      temp->state = state;
+      return 1;
+    }
+    temp = temp->next;
+  }
+  return -1;
+}
+
 uint8_t* pick_a_chunk(struct packet* packet, struct Chunk** chunk_pointer){
   int i=0;
   struct Chunk* p_chunk = current_request->chunks;
@@ -254,6 +266,7 @@ void update_connections(int peer_id, struct packet* incoming_packet){
   if(connections==NULL){
     connections = (struct connection*)malloc(sizeof(struct connection));
     connections->peer_id = peer_id;
+    connections->state = NOT_WORKING;
     connections->chunks = NULL;
     connections->chunks = update_chunks(connections->chunks, &(connections->chunk_count), incoming_packet);
     connections->next = NULL;
@@ -272,6 +285,7 @@ void update_connections(int peer_id, struct packet* incoming_packet){
     temp = (struct connection*)malloc(sizeof(struct connection));
     temp->peer_id = peer_id;
     temp->chunks = NULL;
+    temp->state = NOT_WORKING;
     temp->chunks = update_chunks(temp->chunks, &(temp->chunk_count), incoming_packet);
     temp->next = connections;
     connections = temp;
@@ -283,12 +297,50 @@ void free_connection(struct connection* p){
   free(p);
 }
 
+uint8_t* pick_a_chunk_after_crash(struct Chunk** chunk_pointer, int* peer_id){
+  int i=0;
+  struct Chunk* p_chunk=current_request->chunks;
+  struct connection* temp_connection = connections;
+  while(temp_connection){
+    if(temp_connection->state==NOT_WORKING){
+      for(i=0;i<current_request->chunk_number;i++){
+        if(p_chunk[i].state==NOT_STARTED 
+          && peer_contain_chunk(temp_connection->peer_id, p_chunk[i].hash)==1){
+          p_chunk[i].state = RECEIVING;
+          mark_peer_state(temp_connection->peer_id, WORKING);
+          *chunk_pointer = &p_chunk[i];
+          *peer_id = temp_connection->peer_id;
+          return p_chunk[i].hash;
+        }
+      }
+    }
+    temp_connection = temp_connection->next;
+  }
+  *peer_id = -1;
+  *chunk_pointer = NULL;
+  return NULL;
+}
+
 // need to update current_request's chunk state and remove connections peer
 void download_peer_crash(){
   uint8_t hash[SHA1_HASH_SIZE];
   int peer_id = clean_download_timeout(hash);
   if(peer_id<=0 || connections == NULL || current_request == NULL){
     return;
+  }
+  uint8_t* chunk_hash = NULL;
+  struct Chunk* p_chunk;
+  int new_peer_id = -1;
+  chunk_hash = pick_a_chunk_after_crash(&p_chunk, &new_peer_id);
+  printf("picked a chunk after crash");print_hash(chunk_hash);
+  if(chunk_hash!=NULL){
+    if(start_download(new_peer_id, chunk_hash)){
+      bt_peer_t* temp_info = bt_peer_info(&config, new_peer_id);
+      struct packet* packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
+      send_packet(*packet, sock, (struct sockaddr*)&(temp_info->addr));
+      print_packet(packet);
+      free_packet(packet);
+    }
   }
   int i=0;
   for(i=0;i < current_request->chunk_number; i++){

@@ -101,6 +101,7 @@ void process_inbound_udp(int sock) {
         print_hash(chunk_hash);
         if(chunk_hash!=NULL){
           /* add a transmission stream, i.e. associate the stream with peer */
+          mark_peer_state(peer_id, WORKING);
           printf("start downloading\n");
           if(start_download(peer_id, chunk_hash)){
           	printf("sent GET packet\n");
@@ -111,6 +112,9 @@ void process_inbound_udp(int sock) {
             free_packet(packet);
           }
           printf("end downloading\n");
+        }
+        else{
+          mark_peer_state(peer_id, NOT_WORKING);
         }
       }
       break;
@@ -173,12 +177,16 @@ void process_inbound_udp(int sock) {
             chunk_hash = pick_a_new_chunk(peer_id, &p_chunk);
             printf("picked a chunk");print_hash(chunk_hash);
             if(chunk_hash!=NULL){
+              mark_peer_state(peer_id, WORKING);
               /* add a transmission stream, i.e. associate the stream with peer */
               if(start_download(peer_id, chunk_hash)){
                 packet = make_packet(GET, p_chunk, NULL, 0, 0, 0, NULL, NULL, NULL);
                 send_packet(*packet, sock, (struct sockaddr*)&from);
                 free_packet(packet);
               }
+            }
+            else{
+              mark_peer_state(peer_id, NOT_WORKING);
             }
           }
       }

@@ -26,6 +26,8 @@ struct Chunk* update_chunks(struct Chunk* chunks, int* chunk_count, struct packe
 void update_connections(int peer_id, struct packet* incoming_packet);
 void free_connection(struct connection* p);
 void download_peer_crash();
+uint8_t* pick_a_chunk_after_crash(struct Chunk** chunk_pointer, int* peer_id);
+int mark_peer_state(int peer_id, int state);
 
 void print_connection(struct connection* connection);
 void print_connections();
