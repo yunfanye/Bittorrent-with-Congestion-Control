@@ -30,6 +30,7 @@
 int sock;
 bt_config_t config;
 struct Request* has_chunk_table; // used to record has_chunk number and chunks
+struct Request* total_chunk_table;
 struct Request* current_request;
 struct connection* connections;
 char master_data_file_name[FILE_NAME_SIZE];

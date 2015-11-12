@@ -231,7 +231,7 @@ void update_ihave_table(struct Chunk* chunk){
     memcpy(temp[i].hash, has_chunk_table->chunks[i].hash, SHA1_HASH_SIZE);
   }
   print_hash(chunk->hash);
-  temp[has_chunk_table->chunk_number-1].id = get_chunk_id(chunk->hash, has_chunk_table);
+  temp[has_chunk_table->chunk_number-1].id = get_chunk_id(chunk->hash, total_chunk_table);
   temp[has_chunk_table->chunk_number-1].state = OWNED;
   temp[has_chunk_table->chunk_number-1].received_seq_number = 0;
   temp[has_chunk_table->chunk_number-1].received_byte_number = 0;

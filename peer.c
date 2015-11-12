@@ -126,8 +126,8 @@ void process_inbound_udp(int sock) {
   		if(find_chunk(chunk_hash)==1){
     	/* init a transmission stream and respond data 
     	 * check if upload queue is full, if not, start uploading */
-        printf("peer_id: %d, GET packet here, chunk_id: %d\n", peer_id, get_chunk_id(chunk_hash, has_chunk_table));
-		    if(start_upload(peer_id, get_chunk_id(chunk_hash, has_chunk_table))){
+        printf("peer_id: %d, GET packet here, chunk_id: %d\n", peer_id, get_chunk_id(chunk_hash, total_chunk_table));
+		    if(start_upload(peer_id, get_chunk_id(chunk_hash, total_chunk_table))){
           printf("start_upload success\n"); 
 		  	 	init_cwnd(peer_id);/* init cwnd */
         }
@@ -271,9 +271,12 @@ void peer_run(bt_config_t *config) {
   current_request = NULL;
   connections = NULL;
   has_chunk_table = NULL;
+  total_chunk_table = NULL;
   spiffy_init(config->identity, (struct sockaddr *)&myaddr, sizeof(myaddr));
   has_chunk_table = parse_has_get_chunk_file(config->has_chunk_file, NULL);
+  total_chunk_table = parse_has_get_chunk_file(config->chunk_file, NULL);
   print_request(has_chunk_table);
+  print_request(total_chunk_table);
 
   char read_buffer[MAX_LINE_LENGTH];
   FILE* master_chunk_file = fopen(config->chunk_file, "r");
