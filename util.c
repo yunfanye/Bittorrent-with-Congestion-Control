@@ -230,6 +230,7 @@ void update_ihave_table(struct Chunk* chunk){
     temp[i].data = has_chunk_table->chunks[i].data;
     memcpy(temp[i].hash, has_chunk_table->chunks[i].hash, SHA1_HASH_SIZE);
   }
+  print_hash(chunk->hash);
   temp[has_chunk_table->chunk_number-1].id = get_chunk_id(chunk->hash, has_chunk_table);
   temp[has_chunk_table->chunk_number-1].state = OWNED;
   temp[has_chunk_table->chunk_number-1].received_seq_number = 0;
@@ -260,7 +261,7 @@ int save_chunk(int chunk_id){
     else{
       int offset = chunk->id * BT_CHUNK_SIZE;
       filename = current_request->filename;
-      printf("offset: %d\n", offset);
+      printf("chunk->id: %d, offset: %d\n", chunk->id, offset);
       write_file(filename, chunk->data, BT_CHUNK_SIZE, offset);
       printf("before update_ihave_table\n");
       print_request(has_chunk_table);
