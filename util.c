@@ -117,7 +117,7 @@ void free_request(struct Request* p){
 unsigned long milli_time() {
 	struct timeval time;
 	gettimeofday(&time, NULL);
-	return time.tv_sec * 1000000 + time.tv_usec;
+	return time.tv_sec * 1000 * 1000 + time.tv_usec;
 }
 
 uint8_t* pick_a_chunk(struct packet* packet, struct Chunk** chunk_pointer){
